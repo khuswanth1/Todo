@@ -2,6 +2,166 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Global Theme CSS Variables ──────────────────────────────────── */
+:root {
+  --primary-color: #4f46e5;
+  --bg-color: #f8fafc;
+  --sidebar-color: #ffffff;
+  --card-color: #ffffff;
+  --heading-color: #0f172a;
+  --text-color: #475569;
+  --button-bg-color: #4f46e5;
+  --button-text-color: #ffffff;
+  --base-font-size: 16px;
+  --font-family: 'Inter', sans-serif;
+  --border-radius: 1rem;
+}
+
+.dark {
+  --bg-color: #0f172a;
+  --sidebar-color: #1e293b;
+  --card-color: #1e293b;
+  --heading-color: #ffffff;
+  --text-color: #cbd5e1;
+}
+
+/* ─── Apply theme font globally ────────────────────────────────────── */
+body {
+  font-family: var(--font-family);
+  font-size: var(--base-font-size);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.4s ease, color 0.3s ease;
+}
+
+/* ─── Theme utility classes (use these in components) ─────────────── */
+.theme-bg        { background-color: var(--bg-color) !important; }
+.theme-card      { background-color: var(--card-color) !important; }
+.theme-sidebar   { background-color: var(--sidebar-color) !important; }
+.theme-heading   { color: var(--heading-color) !important; }
+.theme-text      { color: var(--text-color) !important; }
+.theme-primary   { color: var(--primary-color) !important; }
+.theme-btn       { background-color: var(--button-bg-color) !important; color: var(--button-text-color) !important; }
+.theme-border    { border-color: var(--primary-color) !important; }
+.theme-radius    { border-radius: var(--border-radius) !important; }
+
+/* ─── .custom-theme: override Tailwind bg/text when user applies a preset ─ */
+/* These rules only activate when ThemeSettings adds .custom-theme to <html> */
+
+/* --- Colors --- */
+.custom-theme.theme-colors body,
+.custom-theme.theme-colors main,
+.custom-theme.theme-colors [class*="min-h-screen"] {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+.custom-theme.theme-colors header {
+  background-color: color-mix(in srgb, var(--bg-color) 85%, transparent) !important;
+  border-color: color-mix(in srgb, var(--text-color) 10%, transparent) !important;
+}
+
+.custom-theme.theme-colors [class*="bg-slate-900"]:not(.backdrop-blur-sm):not(.absolute.inset-0):not([class*="min-h-screen"]):not(input):not(select):not(button):not(.toggle-bg),
+.custom-theme.theme-colors [class*="bg-slate-800"]:not(.backdrop-blur-sm):not(.absolute.inset-0):not([class*="min-h-screen"]):not(input):not(select):not(button):not(.color-input-container):not(.toggle-bg),
+.custom-theme.theme-colors [class*="bg-slate-950"]:not(.backdrop-blur-sm):not(.absolute.inset-0):not([class*="min-h-screen"]):not(input):not(select):not(button):not(.toggle-bg),
+.custom-theme.theme-colors [class*="bg-white"]:not(.backdrop-blur-sm):not(.absolute.inset-0):not([class*="min-h-screen"]):not(input):not(select):not(button):not(.color-input-container):not(.toggle-bg),
+.custom-theme.theme-colors [class*="bg-gray-50"]:not(.backdrop-blur-sm):not(.absolute.inset-0):not([class*="min-h-screen"]):not(input):not(select):not(button):not(.toggle-bg),
+.custom-theme.theme-colors [class*="bg-slate-50"]:not(.backdrop-blur-sm):not(.absolute.inset-0):not([class*="min-h-screen"]):not(input):not(select):not(button):not(.toggle-bg),
+.custom-theme.theme-colors [class*="bg-slate-100"]:not(.backdrop-blur-sm):not(.absolute.inset-0):not([class*="min-h-screen"]):not(input):not(select):not(button):not(.toggle-bg),
+.custom-theme.theme-colors [class*="bg-indigo-50"]:not(.backdrop-blur-sm):not(.absolute.inset-0):not([class*="min-h-screen"]):not(input):not(select):not(button):not(.toggle-bg) {
+  background-color: var(--card-color) !important;
+  border-color: color-mix(in srgb, var(--text-color) 10%, transparent) !important;
+}
+
+.custom-theme.theme-colors [class*="text-slate-750"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-700"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-800"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-900"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-gray-700"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-gray-800"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-gray-900"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-white"]:not(input):not(select):not(.font-mono) {
+  color: var(--heading-color) !important;
+}
+
+.custom-theme.theme-colors [class*="text-slate-50"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-100"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-200"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-300"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-400"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-500"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-slate-600"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-gray-400"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-gray-500"]:not(input):not(select):not(.font-mono),
+.custom-theme.theme-colors [class*="text-gray-600"]:not(input):not(select):not(.font-mono) {
+  color: var(--text-color) !important;
+}
+
+/* Primary Button & Elements */
+.custom-theme.theme-colors [class*="bg-indigo-6"]:not([class*="/"]),
+.custom-theme.theme-colors [class*="bg-indigo-5"]:not([class*="/"]) {
+  background-color: var(--button-bg-color) !important;
+  color: var(--button-text-color) !important;
+}
+
+.custom-theme.theme-colors [class*="bg-indigo-6"]:not([class*="/"]) *,
+.custom-theme.theme-colors [class*="bg-indigo-5"]:not([class*="/"]) * {
+  color: var(--button-text-color) !important;
+}
+
+.custom-theme.theme-colors [class*="bg-indigo-6"]:not([class*="/"]):hover,
+.custom-theme.theme-colors [class*="bg-indigo-5"]:not([class*="/"]):hover {
+  filter: brightness(0.9) !important;
+}
+
+.custom-theme.theme-colors [class*="bg-indigo-500/10"] {
+  background-color: color-mix(in srgb, var(--primary-color) 10%, transparent) !important;
+}
+
+.custom-theme.theme-colors [class*="text-indigo-6"]:not([class*="/"]),
+.custom-theme.theme-colors [class*="text-indigo-5"]:not([class*="/"]) {
+  color: var(--primary-color) !important;
+}
+
+/* Font family settings */
+.custom-theme.theme-font-family * {
+  font-family: var(--font-family) !important;
+}
+
+/* Font size overrides */
+.custom-theme.theme-font-size body,
+.custom-theme.theme-font-size main,
+.custom-theme.theme-font-size [class*="min-h-screen"] {
+  font-size: var(--base-font-size) !important;
+}
+
+.custom-theme.theme-font-size input:not([type="checkbox"]):not([type="radio"]),
+.custom-theme.theme-font-size select,
+.custom-theme.theme-font-size textarea {
+  font-size: var(--base-font-size) !important;
+  padding-top: 0.6em !important;
+  padding-bottom: 0.6em !important;
+  height: auto !important;
+  min-height: 2.5em !important;
+  line-height: normal !important;
+}
+
+.custom-theme.theme-font-size button {
+  font-size: var(--base-font-size) !important;
+}
+
+/* Border radius overrides */
+.custom-theme.theme-border-radius input,
+.custom-theme.theme-border-radius select,
+.custom-theme.theme-border-radius textarea,
+.custom-theme.theme-border-radius button {
+  border-radius: var(--border-radius) !important;
+}
+
+a, button:focus-visible {
+  outline-color: var(--primary-color);
+}
+
 @layer utilities {
   .animate-enter {
     animation: enter 0.3s ease-out;
@@ -42,5 +202,11 @@
 }
 
 .input {
-  @apply w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 outline-none bg-white/70 transition;
+  @apply w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 outline-none bg-white/70 transition;
+  border-radius: var(--border-radius);
+}
+
+/* Calendar/Clock icon color inversion for dark mode inputs */
+.dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(0.9);
 }

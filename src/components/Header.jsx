@@ -7,9 +7,10 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import PhoneIcon from "@mui/icons-material/Phone";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
-import TaskIcon from "@mui/icons-material/Task";
+import FactCheckIcon from "@mui/icons-material/FactCheck";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
-export default function Header({ user, setToken, searchQuery, setSearchQuery, onEditProfile, theme, setTheme, isSystemDark }) {
+export default function Header({ user, setToken, searchQuery, setSearchQuery, onEditProfile, onOpenSettings, onGoHome, theme, setTheme, isSystemDark }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -23,6 +24,25 @@ export default function Header({ user, setToken, searchQuery, setSearchQuery, on
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Live Clock
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formattedDate = currentTime.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+  
+  const formattedTime = currentTime.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -40,14 +60,17 @@ export default function Header({ user, setToken, searchQuery, setSearchQuery, on
             : "bg-white/70 backdrop-blur-xl text-slate-900 border-b border-x border-slate-100 shadow-slate-200/50"
       }
 `}>
-      <div className="flex items-center gap-3">
-        <div className="bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/20 flex items-center justify-center transform hover:scale-105 transition-transform duration-300">
-          <TaskIcon className="text-white" sx={{ fontSize: 24 }} />
+      <button 
+        onClick={onGoHome}
+        className="flex items-center gap-3 cursor-pointer group/logo text-left outline-none"
+      >
+        <div className="bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/20 flex items-center justify-center transform group-hover/logo:scale-105 transition-all duration-300 group-active/logo:scale-95">
+          <FactCheckIcon className="text-white" sx={{ fontSize: 24 }} />
         </div>
         <h1 className="text-2xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent tracking-tighter">
           Todo Pro
         </h1>
-      </div>
+      </button>
 
       <div className="flex-1 max-w-xl mx-12">
         <div className="relative group">
@@ -75,25 +98,54 @@ export default function Header({ user, setToken, searchQuery, setSearchQuery, on
           )}
         </div>
       </div>
-
       <div className="flex items-center gap-4">
+        {/* Premium Running Clock */}
+        <div className={`hidden xl:flex items-center h-[42px] px-6 rounded-xl border backdrop-blur-md shadow-sm transition-all duration-500 hover:shadow-md
+          ${theme === 'dark' || (theme === 'system' && isSystemDark) 
+            ? 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800/60' 
+            : 'bg-white/60 border-slate-200/60 hover:bg-white'}`}>
+          <span className={`text-[13px] font-black tracking-[0.15em] ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-slate-200' : 'text-slate-800'}`}>
+            {formattedDate}
+          </span>
+          <span className={`ml-4 text-[16px] font-black font-mono tracking-wider ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-indigo-400' : 'text-indigo-700'}`}>
+            {formattedTime}
+          </span>
+        </div>
+        
         {/* Theme Dropdown */}
-        <div className="relative group/theme">
+        <div className="relative group/theme hidden sm:block">
           <select
             value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            className={`appearance-none px-4 py-2 pr-10 rounded-xl border text-[10px] font-black uppercase tracking-[0.1em] shadow-sm focus:outline-none transition-all duration-300 cursor-pointer hover:shadow-md
+            onChange={(e) => {
+              const newTheme = e.target.value;
+              setTheme(newTheme);
+              localStorage.setItem('theme', newTheme);
+              
+              // Disable custom colors so the mode switch actually takes effect visually
+              try {
+                const savedStr = localStorage.getItem('todo_theme_config');
+                if (savedStr) {
+                  const cfg = JSON.parse(savedStr);
+                  cfg.enableColors = false;
+                  localStorage.setItem('todo_theme_config', JSON.stringify(cfg));
+                }
+              } catch (err) {}
+              
+              document.documentElement.classList.remove('theme-colors');
+              window.dispatchEvent(new Event('storage'));
+            }}
+            className={`appearance-none px-4 py-2 pr-9 rounded-xl border text-[10px] font-black tracking-[0.1em] shadow-sm focus:outline-none transition-all duration-300 cursor-pointer hover:shadow-md
               ${theme === "dark" || (theme === 'system' && isSystemDark)
                 ? "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750"
-                : "bg-white text-slate-600 border-slate-200 hover:border-indigo-200"
+                : "bg-white text-slate-700 border-slate-200 hover:border-indigo-200 hover:bg-slate-50"
               }`}
           >
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+            <option value="light">Light Mode</option>
+            <option value="dark">Dark Mode</option>
             <option value="system">System</option>
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400 group-hover/theme:text-indigo-500 transition-colors">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 group-hover/theme:text-indigo-500 transition-colors">
+            <ExpandMoreIcon sx={{ fontSize: 16 }} />
           </div>
         </div>
 
@@ -116,80 +168,104 @@ export default function Header({ user, setToken, searchQuery, setSearchQuery, on
               <PersonIcon />
             </div>
           )}
+          
+          <div className="hidden lg:flex flex-col items-start justify-center ml-1 pr-3 max-w-[120px]">
+            <span className={`text-xs font-black truncate w-full tracking-tight ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-slate-200' : 'text-slate-800'}`}>
+              {user?.name || "Member"}
+            </span>
+            <span className="text-[9px] font-bold text-slate-500 tracking-wider truncate w-full">
+              {user?.mobile || "No phone"}
+            </span>
+          </div>
         </button>
 
         {showDropdown && (
-          <div className={`absolute right-0 mt-4 w-80 rounded-[2.5rem] shadow-2xl border p-8 z-50 transform origin-top-right transition-all animate-in fade-in zoom-in slide-in-from-top-4 duration-300
+          <div className={`absolute right-0 mt-4 w-80 rounded-[2.5rem] shadow-2xl border p-6 z-50 transform origin-top-right transition-all animate-in fade-in zoom-in slide-in-from-top-4 duration-300
             ${theme === "dark" || (theme === 'system' && isSystemDark)
               ? "bg-slate-900/95 backdrop-blur-2xl border-slate-800 text-white"
               : "bg-white/95 backdrop-blur-2xl border-slate-100 text-slate-900"
             }`}>
-            {/* User Info Header */}
-            <div className="flex flex-col items-center pb-6 border-b border-slate-100/10">
+            
+            {/* User Info Header - Always Visible */}
+            <div className="flex flex-col items-center pb-4">
               <div className="relative group/avatar">
                 <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-purple-600 rounded-full blur opacity-25 group-hover/avatar:opacity-50 transition duration-300"></div>
-                <div className="relative w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-700 shadow-2xl overflow-hidden">
+                <div className="relative w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center border-4 border-white dark:border-slate-700 shadow-2xl overflow-hidden">
                   {user?.profileImage && !user.profileImage.startsWith('blob:') ? (
                     <img src={user.profileImage} alt="Avatar" className="w-full h-full object-cover transform group-hover/avatar:scale-110 transition duration-500" />
                   ) : (
-                    <AccountCircleIcon className="text-indigo-500" sx={{ fontSize: 80 }} />
+                    <AccountCircleIcon className="text-indigo-500" sx={{ fontSize: 60 }} />
                   )}
                 </div>
               </div>
-              <h3 className="mt-4 font-black text-2xl tracking-tighter">
+              <h3 className="mt-3 font-black text-xl tracking-tighter">
                 {user?.name || "Member"}
               </h3>
-              <p className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent font-bold text-sm">
+              <p className="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent font-bold text-xs">
                 @{user?.username || "username"}
               </p>
             </div>
 
-            {/* Profile Details */}
-            <div className="py-6 space-y-5">
-              <div className="flex items-center gap-4 px-3 group/item">
-                <div className="w-10 h-10 bg-indigo-500/10 rounded-2xl flex items-center justify-center group-hover/item:bg-indigo-500/20 transition-colors">
-                  <EmailIcon className="text-indigo-500" sx={{ fontSize: 18 }} />
+            <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 px-2 group/item">
+                    <div className="w-8 h-8 bg-indigo-500/10 rounded-xl flex items-center justify-center group-hover/item:bg-indigo-500/20 transition-colors">
+                      <EmailIcon className="text-indigo-500" sx={{ fontSize: 16 }} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] tracking-widest text-slate-400 font-black">Email Address</span>
+                      <span className="text-xs font-bold truncate opacity-80">{user?.email}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 px-2 group/item">
+                    <div className="w-8 h-8 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover/item:bg-purple-500/20 transition-colors">
+                      <PhoneIcon className="text-purple-500" sx={{ fontSize: 16 }} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[9px] tracking-widest text-slate-400 font-black">Phone Number</span>
+                      <span className="text-xs font-bold truncate opacity-80">{user?.mobile || "Not provided"}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] uppercase tracking-widest text-slate-400 font-black">Email Address</span>
-                  <span className="text-sm font-bold truncate opacity-80">{user?.email}</span>
+
+              <div className="flex justify-center pt-2">
+                <button 
+                  onClick={() => {
+                    setShowDropdown(false);
+                    onOpenSettings();
+                  }}
+                  className={`w-full flex items-center justify-center gap-2 text-sm font-black py-3 rounded-xl transition-all border text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700`}
+                >
+                  <SettingsIcon sx={{ fontSize: 20 }} /> Settings
+                </button>
+              </div>
+                <div className="flex flex-row gap-2 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowDropdown(false);
+                      onEditProfile();
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 active:scale-[0.98] transition-all font-black text-xs"
+                  >
+                    <PersonIcon sx={{ fontSize: 16 }} /> Edit
+                  </button>
+
+                  <button
+                    onClick={handleLogout}
+                    className={`flex-1 flex items-center justify-center gap-1 py-3 rounded-xl active:scale-[0.98] transition-all font-black text-xs border
+                      ${theme === 'dark' || (theme === 'system' && isSystemDark)
+                        ? 'bg-slate-800 text-red-400 border-slate-700 hover:bg-red-500/10'
+                        : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
+                      }`}
+                  >
+                    <LogoutIcon sx={{ fontSize: 16 }} /> Logout
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 px-3 group/item">
-                <div className="w-10 h-10 bg-purple-500/10 rounded-2xl flex items-center justify-center group-hover/item:bg-purple-500/20 transition-colors">
-                  <PhoneIcon className="text-purple-500" sx={{ fontSize: 18 }} />
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] uppercase tracking-widest text-slate-400 font-black">Phone Number</span>
-                  <span className="text-sm font-bold truncate opacity-80">{user?.mobile || "Not provided"}</span>
-                </div>
-              </div>
-            </div>
 
-            {/* Actions */}
-            <div className="flex flex-col gap-3 pt-2">
-              <button
-                onClick={() => {
-                  setShowDropdown(false);
-                  onEditProfile();
-                }}
-                className="w-full flex items-center justify-center gap-3 py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-2xl hover:shadow-lg hover:shadow-indigo-500/30 active:scale-[0.98] transition-all font-black text-sm"
-              >
-                <PersonIcon sx={{ fontSize: 18 }} /> Edit Profile
-              </button>
-
-              <button
-                onClick={handleLogout}
-                className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl active:scale-[0.98] transition-all font-black text-sm border
-                  ${theme === 'dark' || (theme === 'system' && isSystemDark)
-                    ? 'bg-slate-800 text-red-400 border-slate-700 hover:bg-red-500/10'
-                    : 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100'
-                  }`}
-              >
-                <LogoutIcon sx={{ fontSize: 18 }} /> Logout
-              </button>
-            </div>
+            
           </div>
         )}
       </div>

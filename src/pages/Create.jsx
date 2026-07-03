@@ -6,15 +6,16 @@ import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import WcIcon from "@mui/icons-material/Wc";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-export default function Create({ token, onComplete, theme, isSystemDark }) {
+export default function Create({ token, user, setToken, onComplete, theme, isSystemDark }) {
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
     age: "",
     gender: "",
     dob: "",
-    email: "",
+    email: user?.email || "",
     phone: "",
     image: null
   });
@@ -33,18 +34,9 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
     }
   };
 
-  const handleCancel = () => {
-    setForm({
-      firstName: "",
-      lastName: "",
-      age: "",
-      gender: "",
-      dob: "",
-      email: "",
-      phone: "",
-      image: null
-    });
-    setPreview(null);
+  const handleBack = () => {
+    localStorage.removeItem("token");
+    setToken(null);
   };
 
   const handleSubmit = async (e) => {
@@ -61,8 +53,8 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
 
       console.log("Sending payload:", payload);
 
-      const res = await fetch("http://localhost:8080/auth/update-profile", {
-        method: "POST",
+      const res = await fetch("/auth/update-profile", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + token
@@ -81,37 +73,37 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
   };
 
   return (
-    <div className={`min-h-screen p-6 flex items-center justify-center transition-colors duration-500
+    <div className={`min-h-screen p-3 flex items-center justify-center transition-colors duration-500
       ${theme === 'dark' || (theme === 'system' && isSystemDark) 
         ? 'bg-slate-950' 
         : 'bg-gradient-to-br from-indigo-50 via-white to-purple-50'
       }`}>
-      <div className={`w-full max-w-2xl backdrop-blur-xl rounded-[2.5rem] shadow-2xl border p-10 transition-all duration-300
+      <div className={`w-full max-w-md backdrop-blur-xl rounded-[1.5rem] shadow-2xl border p-5 transition-all duration-300
         ${theme === 'dark' || (theme === 'system' && isSystemDark)
           ? 'bg-slate-900/80 border-slate-800 shadow-black/20 text-white'
           : 'bg-white/80 border-white text-slate-800'
         }`}>
         
         {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className={`text-4xl font-black tracking-tight mb-2 ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-white' : 'text-gray-800'}`}>
+        <div className="text-center mb-6">
+          <h1 className={`text-2xl font-black tracking-tight mb-1 ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-white' : 'text-gray-800'}`}>
             Create New Account
           </h1>
-          <p className="text-gray-500 font-medium">Please fill in the details below to register.</p>
+          <p className="text-gray-500 font-medium text-sm">Please fill in the details below to register.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-5">
           
           {/* Profile Image Upload */}
           <div className="flex flex-col items-center justify-center group">
-            <div className="relative w-32 h-32 mb-4">
+            <div className="relative w-24 h-24 mb-2">
               <div className={`w-full h-full rounded-full border-4 shadow-xl flex items-center justify-center overflow-hidden
                 ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 border-slate-700' : 'bg-indigo-50 border-white'}
               `}>
                 {preview ? (
                   <img src={preview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <AccountCircleIcon className={theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-slate-700' : 'text-indigo-200'} sx={{ fontSize: 100 }} />
+                  <AccountCircleIcon className={theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-slate-700' : 'text-indigo-200'} sx={{ fontSize: 70 }} />
                 )}
               </div>
               <label className="absolute bottom-0 right-0 bg-indigo-600 text-white p-2 rounded-full cursor-pointer shadow-lg hover:bg-indigo-700 transition-all hover:scale-110">
@@ -119,10 +111,10 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
                 <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
               </label>
             </div>
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Upload Profile Picture</span>
+            <span className="text-xs font-bold text-gray-400 tracking-widest">Upload Profile Picture</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* First Name */}
             <div className="space-y-2">
@@ -133,7 +125,7 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
                 type="text"
                 value={form.firstName}
                 placeholder="John"
-                className={`w-full border-none rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500 transition-all
+                className={`w-full border-none rounded-2xl p-3 focus:ring-2 focus:ring-indigo-500 transition-all
                   ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 text-white placeholder:text-slate-600' : 'bg-gray-50 text-gray-700'}
                 `}
                 onChange={(e) => setForm({...form, firstName: e.target.value})}
@@ -149,7 +141,7 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
                 type="text"
                 value={form.lastName}
                 placeholder="Doe"
-                className={`w-full border-none rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500 transition-all
+                className={`w-full border-none rounded-2xl p-3 focus:ring-2 focus:ring-indigo-500 transition-all
                   ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 text-white placeholder:text-slate-600' : 'bg-gray-50 text-gray-700'}
                 `}
                 onChange={(e) => setForm({...form, lastName: e.target.value})}
@@ -165,7 +157,7 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
                 type="number"
                 value={form.age}
                 placeholder="25"
-                className={`w-full border-none rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500 transition-all
+                className={`w-full border-none rounded-2xl p-3 focus:ring-2 focus:ring-indigo-500 transition-all
                   ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 text-white placeholder:text-slate-600' : 'bg-gray-50 text-gray-700'}
                 `}
                 onChange={(e) => setForm({...form, age: e.target.value})}
@@ -179,7 +171,7 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
               </label>
               <select
                 value={form.gender}
-                className={`w-full border-none rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500 transition-all appearance-none cursor-pointer
+                className={`w-full border-none rounded-2xl p-3 focus:ring-2 focus:ring-indigo-500 transition-all appearance-none cursor-pointer
                   ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 text-white' : 'bg-gray-50 text-gray-700'}
                 `}
                 onChange={(e) => setForm({...form, gender: e.target.value})}
@@ -199,7 +191,7 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
               <input
                 type="date"
                 value={form.dob}
-                className={`w-full border-none rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500 transition-all
+                className={`w-full border-none rounded-2xl p-3 focus:ring-2 focus:ring-indigo-500 transition-all
                   ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 text-white' : 'bg-gray-50 text-gray-700'}
                 `}
                 onChange={(e) => setForm({...form, dob: e.target.value})}
@@ -215,7 +207,7 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
                 type="tel"
                 value={form.phone}
                 placeholder="+1 234 567 890"
-                className={`w-full border-none rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500 transition-all
+                className={`w-full border-none rounded-2xl p-3 focus:ring-2 focus:ring-indigo-500 transition-all
                   ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 text-white placeholder:text-slate-600' : 'bg-gray-50 text-gray-700'}
                 `}
                 onChange={(e) => setForm({...form, phone: e.target.value})}
@@ -223,7 +215,7 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
             </div>
           </div>
 
-          {/* Email ID */}
+          {/* Email ID (auto-filled from signup) */}
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-bold text-gray-700 ml-1">
               <EmailIcon fontSize="inherit" className="text-indigo-500" /> Email Address
@@ -232,7 +224,7 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
               type="email"
               value={form.email}
               placeholder="john.doe@example.com"
-              className={`w-full border-none rounded-2xl p-4 focus:ring-2 focus:ring-indigo-500 transition-all
+              className={`w-full border-none rounded-2xl p-3 focus:ring-2 focus:ring-indigo-500 transition-all
                 ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 text-white placeholder:text-slate-600' : 'bg-gray-50 text-gray-700'}
               `}
               onChange={(e) => setForm({...form, email: e.target.value})}
@@ -240,21 +232,21 @@ export default function Create({ token, onComplete, theme, isSystemDark }) {
           </div>
 
           {/* Submit Button */}
-          <div className="flex gap-4 mt-6">
+          <div className="flex gap-3 mt-6">
             <button
               type="button"
-              onClick={handleCancel}
-              className={`flex-1 font-black py-5 rounded-[1.5rem] shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300
+              onClick={handleBack}
+              className={`flex-1 font-black py-4 rounded-[1.2rem] shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 flex items-center justify-center gap-2
                 ${theme === 'dark' || (theme === 'system' && isSystemDark)
                   ? 'bg-slate-800 text-white border border-slate-700 shadow-black/20'
                   : 'bg-white text-gray-700 border border-gray-100 shadow-indigo-50'
                 }`}
             >
-              Cancel
+              <ArrowBackIcon sx={{ fontSize: 18 }} /> Back
             </button>
             <button
               type="submit"
-              className={`flex-[2] font-black py-5 rounded-[1.5rem] shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300
+              className={`flex-[2] font-black py-4 rounded-[1.2rem] shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300
                 ${theme === 'dark' || (theme === 'system' && isSystemDark)
                   ? 'bg-indigo-600 text-white shadow-indigo-900/20'
                   : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-indigo-100'

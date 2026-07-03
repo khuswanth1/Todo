@@ -17,23 +17,28 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
     dob: "",
     email: "",
     phone: "",
-    image: null
+    image: null,
+    autoDeleteCompletedTasks: true
   });
 
   const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     if (user) {
-      const names = user.name ? user.name.split(" ") : ["", ""];
+      const fullName = user.name ? user.name.trim() : "";
+      const lastSpaceIdx = fullName.lastIndexOf(" ");
+      const firstName = lastSpaceIdx !== -1 ? fullName.slice(0, lastSpaceIdx) : fullName;
+      const lastName = lastSpaceIdx !== -1 ? fullName.slice(lastSpaceIdx + 1) : "";
       setForm({
-        firstName: names[0] || "",
-        lastName: names.slice(1).join(" ") || "",
+        firstName: firstName || "",
+        lastName: lastName || "",
         age: user.age || "",
         gender: user.gender || "",
         dob: user.dob || "",
         email: user.email || "",
         phone: user.mobile || "",
-        image: null
+        image: null,
+        autoDeleteCompletedTasks: user.autoDeleteCompletedTasks ?? true
       });
       setPreview(user.profileImage || null);
     }
@@ -60,11 +65,12 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
         age: form.age ? parseInt(form.age) : null,
         gender: form.gender || null,
         dob: form.dob || null,
-        profileImage: preview || null
+        profileImage: preview || null,
+        autoDeleteCompletedTasks: form.autoDeleteCompletedTasks
       };
 
-      const res = await fetch("http://localhost:8080/auth/update-profile", {
-        method: "POST",
+      const res = await fetch("/auth/update-profile", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + token
@@ -84,7 +90,7 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
 
   return (
     <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[300] flex items-center justify-center p-4 pointer-events-auto">
-      <div className={`rounded-[2.5rem] shadow-2xl w-full max-w-2xl p-10 animate-in zoom-in-95 duration-200 border max-h-[90vh] overflow-y-auto scrollbar-hide
+      <div className={`rounded-[2.5rem] shadow-2xl w-full max-w-lg p-6 md:p-8 animate-in zoom-in-95 duration-200 border max-h-[90vh] overflow-y-auto scrollbar-hide
         ${theme === 'dark' || (theme === 'system' && isSystemDark)
           ? 'bg-slate-900 border-slate-800 text-white'
           : 'bg-white border-white text-slate-800'
@@ -93,9 +99,9 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
         <div className="flex justify-between items-center mb-8">
           <div className="text-left">
             <h1 className={`text-3xl font-black tracking-tight ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-white' : 'text-gray-800'}`}>
-              Refine Identity
+              Edit Profile
             </h1>
-            <p className="text-gray-500 font-medium">Strategic parameter adjustment.</p>
+            <p className="text-gray-500 font-medium">Update your personal information.</p>
           </div>
           <button onClick={onClose} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all
             ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'bg-slate-800 text-slate-500 hover:bg-rose-500/20 hover:text-rose-400' : 'bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500'}
@@ -122,14 +128,14 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
                 <input type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
               </label>
             </div>
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Update Signature Image</span>
+            <span className="text-[10px] font-black text-gray-400 tracking-widest">Update Signature Image</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             <div className="space-y-1">
-              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">
-                <PersonIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> First Designation
+              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 tracking-wider ml-1">
+                <PersonIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> First Name
               </label>
               <input
                 type="text"
@@ -144,8 +150,8 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
             </div>
 
             <div className="space-y-1">
-              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">
-                <PersonIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Final Designation
+              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 tracking-wider ml-1">
+                <PersonIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Last Name
               </label>
               <input
                 type="text"
@@ -160,8 +166,8 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
             </div>
 
             <div className="space-y-1">
-              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">
-                <PersonIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Age Parameter
+              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 tracking-wider ml-1">
+                <PersonIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Age
               </label>
               <input
                 type="number"
@@ -176,8 +182,8 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
             </div>
 
             <div className="space-y-1">
-              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">
-                <WcIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Gender Binary
+              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 tracking-wider ml-1">
+                <WcIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Gender
               </label>
               <select
                 value={form.gender}
@@ -196,8 +202,8 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
             </div>
 
             <div className="space-y-1">
-              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">
-                <CalendarTodayIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Chronological Origin
+              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 tracking-wider ml-1">
+                <CalendarTodayIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Date of Birth
               </label>
               <input
                 type="date"
@@ -212,8 +218,8 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
             </div>
 
             <div className="space-y-1">
-              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">
-                <PhoneIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Comm Channel
+              <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 tracking-wider ml-1">
+                <PhoneIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Phone Number
               </label>
               <input
                 type="tel"
@@ -229,8 +235,8 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
           </div>
 
           <div className="space-y-1">
-            <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">
-              <EmailIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Digital Identity
+            <label className="flex items-center gap-2 text-[11px] font-black text-gray-400 tracking-wider ml-1">
+              <EmailIcon sx={{ fontSize: 14 }} className="text-indigo-500" /> Email Address
             </label>
             <input
               type="email"
@@ -242,16 +248,57 @@ export default function ProfileEditModal({ user, token, onComplete, onClose, the
             />
           </div>
 
-          <button
-            type="submit"
-            className={`w-full font-black py-5 rounded-[1.5rem] shadow-xl transition-all duration-300 mt-2
-              ${theme === 'dark' || (theme === 'system' && isSystemDark)
-                ? 'bg-indigo-600 text-white shadow-indigo-900/20 hover:bg-indigo-500'
-                : 'bg-slate-900 text-white shadow-indigo-100 hover:bg-indigo-600'
-              }`}
-          >
-            Update Identity Parameters
-          </button>
+          <div className={`p-4 mt-6 rounded-2xl border transition-all flex items-center justify-between
+            ${theme === 'dark' || (theme === 'system' && isSystemDark) 
+              ? 'bg-slate-800/30 border-slate-700/50' 
+              : 'bg-slate-50 border-slate-100'}
+          `}>
+            <div>
+              <h3 className={`text-sm font-black ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-slate-200' : 'text-slate-800'}`}>
+                Auto-Delete 
+              </h3>
+              <p className="text-[10px] font-bold text-slate-500 tracking-widest mt-1">
+                Clear DONE tasks after 10 minutes
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={form.autoDeleteCompletedTasks}
+                onChange={(e) => setForm({...form, autoDeleteCompletedTasks: e.target.checked})}
+              />
+              <div className={`w-11 h-6 toggle-bg peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-100 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600
+                ${theme === 'dark' || (theme === 'system' && isSystemDark) 
+                  ? 'bg-slate-800 after:border-slate-600' 
+                  : 'bg-slate-300 after:border-gray-300'}`}
+              ></div>
+            </label>
+          </div>
+
+          <div className="flex items-center gap-3 mt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className={`w-1/2 font-black py-4 rounded-[1.2rem] transition-all duration-300
+                ${theme === 'dark' || (theme === 'system' && isSystemDark)
+                  ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={`w-1/2 font-black py-4 rounded-[1.2rem] shadow-xl transition-all duration-300
+                ${theme === 'dark' || (theme === 'system' && isSystemDark)
+                  ? 'bg-indigo-600 text-white shadow-indigo-900/20 hover:bg-indigo-500'
+                  : 'bg-slate-900 text-white shadow-indigo-100 hover:bg-indigo-600'
+                }`}
+            >
+              Update
+            </button>
+          </div>
         </form>
       </div>
     </div>

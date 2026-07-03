@@ -4,10 +4,12 @@ import App from "./App";
 import "./index.css";
 import { Toaster } from "react-hot-toast";
 
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(registrations => {
     for (let registration of registrations) {
-      if (registration.active && !registration.active.scriptURL.includes('firebase-messaging-sw.js')) {
+      if (registration.active && 
+          !registration.active.scriptURL.includes('firebase-messaging-sw.js')) {
         registration.unregister();
       }
     }

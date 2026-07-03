@@ -32,8 +32,8 @@ const PushNotificationButton = ({ token, onTokenSaved, permission }) => {
           if (fcmToken) {
             console.log("🚀 FCM Token Ready:", fcmToken);
 
-            const res = await fetch("http://localhost:8080/auth/update-profile", {
-              method: "POST",
+            const res = await fetch("/auth/update-profile", {
+              method: "PUT",
               headers: {
                 "Content-Type": "application/json",
                 Authorization: "Bearer " + token,
@@ -56,27 +56,14 @@ const PushNotificationButton = ({ token, onTokenSaved, permission }) => {
 
     // Foreground listener using react-hot-toast for "Professional" look
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("📩 Foreground Message:", payload);
+      console.log("Foreground Message:", payload);
 
       const title = payload.notification?.title || payload.data?.title || "Mission Update";
       const body = payload.notification?.body || payload.data?.body || "Strategic objectives have been updated.";
       const icon = payload.notification?.icon || "/logo192.png";
       const image = payload.notification?.image || payload.data?.image;
 
-      // 🔊 Play Professional Notification Sound
-      try {
-        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/1110/1110-preview.mp3");
-        audio.volume = 0.6;
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(e => {
-            console.warn("🔈 Sound blocked by browser policy until user interacts with the page.", e);
-            // Fallback: try another sound or just log
-          });
-        }
-      } catch (err) {
-        console.error("Failed to play notification sound:", err);
-      }
+      // Audio removed as per user request
 
       // Trigger Rich Native Desktop Notification
       if (Notification.permission === "granted") {
@@ -102,60 +89,7 @@ const PushNotificationButton = ({ token, onTokenSaved, permission }) => {
         }
       }
 
-      // Professional Custom Toast
-      toast.custom((t) => (
-        <div
-          className={`${t.visible ? 'animate-enter' : 'animate-leave'
-            } max-w-md w-full bg-white shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 border-l-8 border-indigo-600 overflow-hidden`}
-          onClick={() => {
-            toast.dismiss(t.id);
-            window.focus();
-            if (payload.data?.url) window.location.href = payload.data.url;
-          }}
-          style={{ cursor: 'pointer' }}
-        >
-          <div className="flex-1 w-0 p-5">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 pt-0.5">
-                <img
-                  className="h-12 w-12 rounded-xl object-cover shadow-lg border border-gray-100"
-                  src={icon}
-                  alt="App Logo"
-                />
-              </div>
-              <div className="ml-4 flex-1">
-                <div className="flex justify-between items-center mb-1">
-                  <p className="text-xs font-black text-indigo-600 uppercase tracking-widest">Todo Pro • Just Now</p>
-                </div>
-                <p className="text-sm font-black text-gray-900 leading-tight">
-                  {title}
-                </p>
-                <p className="mt-1 text-xs text-gray-500 font-medium">
-                  {body}
-                </p>
-                {image && (
-                  <img src={image} className="mt-3 rounded-lg w-full h-24 object-cover shadow-inner" alt="Preview" />
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col border-l border-gray-100 bg-gray-50/50">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toast.dismiss(t.id);
-              }}
-              className="flex-1 px-4 flex items-center justify-center text-xs font-black text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-all uppercase vertical-text"
-              style={{ writingMode: 'vertical-rl' }}
-            >
-              Dismiss
-            </button>
-          </div>
-        </div>
-      ), {
-        duration: 6000,
-        position: 'top-right',
-      });
+
     });
 
     return () => unsubscribe();

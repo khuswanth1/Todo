@@ -53,7 +53,7 @@ const DesktopNotification = ({ title = "Hello World", body = "This is a native d
             </div>
             <div className="ml-4 flex-1">
               <div className="flex justify-between items-center mb-1">
-                <p className="text-xs font-black text-emerald-600 uppercase tracking-widest">System • Just Now</p>
+                <p className="text-xs font-black text-emerald-600 tracking-widest">System • Just Now</p>
               </div>
               <p className="text-sm font-black text-slate-900 leading-tight">{title}</p>
               <p className="mt-1 text-xs text-slate-500 font-medium leading-relaxed">{body}</p>
@@ -66,7 +66,7 @@ const DesktopNotification = ({ title = "Hello World", body = "This is a native d
               e.stopPropagation();
               toast.dismiss(t.id);
             }}
-            className="flex-1 px-4 flex items-center justify-center text-xs font-black text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-all uppercase vertical-text"
+            className="flex-1 px-4 flex items-center justify-center text-xs font-black text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-all vertical-text"
             style={{ writingMode: 'vertical-rl' }}
           >
             Dismiss
@@ -79,7 +79,7 @@ const DesktopNotification = ({ title = "Hello World", body = "This is a native d
   return (
     <button
       onClick={showNotification}
-      className="mt-2 flex items-center justify-center gap-1 w-full text-[9px] font-black bg-slate-800 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all uppercase tracking-widest"
+      className="mt-2 flex items-center justify-center gap-1 w-full text-[9px] font-black bg-slate-800 text-white px-3 py-2 rounded-lg hover:bg-slate-700 transition-all tracking-widest"
     >
       <NotificationsIcon sx={{ fontSize: 14 }} /> Native Desktop Alert
     </button>
