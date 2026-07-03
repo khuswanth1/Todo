@@ -10,7 +10,7 @@ public class PushSubscription {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 500)
+    @Column(columnDefinition = "TEXT")
     private String endpoint;        // unique per device/browser
 
     private String p256dh;          // from browser subscription keys

@@ -49,4 +49,20 @@ public class TaskController {
         service.delete(id);
         return "Task deleted successfully";
     }
+
+    // ✅ BULK DELETE
+    @Operation(summary = "Delete multiple tasks in bulk")
+    @DeleteMapping("/bulk")
+    public String deleteBulk(@RequestBody List<Long> ids) {
+        service.deleteBulk(ids);
+        return "Tasks deleted successfully";
+    }
+
+    // ✅ CLEAR ALL TASKS FOR A USER
+    @Operation(summary = "Delete all tasks for a user completely")
+    @DeleteMapping("/clear")
+    public String clearAll(@RequestParam Long userId) {
+        service.clearAll(userId);
+        return "All tasks deleted successfully";
+    }
 }

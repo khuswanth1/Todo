@@ -60,7 +60,14 @@ public class SchedulerService {
             if (task.getRemindAt() != null && !task.isReminderSent() && task.getUserId() != null) {
                 if (now.isAfter(task.getRemindAt()) || now.isEqual(task.getRemindAt())) {
                     sendDesktopAlert(task, "Mission Reminder", "Reminder for your mission: \"" + task.getTitle() + "\"", "https://cdn-icons-png.flaticon.com/512/564/564619.png");
-                    task.setReminderSent(true);
+                    
+                    if (task.getReminderCount() != null && task.getReminderCount() > 1 && task.getReminderInterval() != null && task.getReminderInterval() > 0) {
+                        task.setReminderCount(task.getReminderCount() - 1);
+                        task.setRemindAt(task.getRemindAt().plusMinutes(task.getReminderInterval()));
+                    } else {
+                        task.setReminderCount(0);
+                        task.setReminderSent(true);
+                    }
                     taskRepository.save(task);
                 }
             }

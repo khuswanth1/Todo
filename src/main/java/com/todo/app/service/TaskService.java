@@ -6,6 +6,8 @@ import java.util.List;
 import com.todo.app.entity.Task;
 import com.todo.app.repository.TaskRepository;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 public class TaskService {
 
@@ -45,7 +47,9 @@ public class TaskService {
     }
 
     public List<Task> get(Long userId) {
-        return repo.findByUserId(userId);
+        return repo.findByUserId(userId).stream()
+                .filter(t -> !t.isArchived())
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public Task update(Long id, Task updatedTask) {
@@ -96,16 +100,47 @@ public class TaskService {
         return savedTask;
     }
 
+    @Transactional
     public void delete(Long id) {
-        if (!repo.existsById(id)) {
-            throw new RuntimeException("Task not found");
-        }
-        // ✅ Cascade Delete: Remove all milestones/subtasks belonging to this task
+        Task task = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+        task.setArchived(true);
+        repo.save(task);
+
+        // Cascade Archive: Set archived=true for all milestones/subtasks belonging to this task
         List<Task> subtasks = repo.findByParentTaskId(id);
         if (subtasks != null && !subtasks.isEmpty()) {
-            repo.deleteAll(subtasks);
+            for (Task sub : subtasks) {
+                sub.setArchived(true);
+            }
+            repo.saveAll(subtasks);
         }
+    }
 
-        repo.deleteById(id);
+    @Transactional
+    public void deleteBulk(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return;
+        for (Long id : ids) {
+            repo.findById(id).ifPresent(task -> {
+                task.setArchived(true);
+                repo.save(task);
+
+                List<Task> subtasks = repo.findByParentTaskId(id);
+                if (subtasks != null && !subtasks.isEmpty()) {
+                    for (Task sub : subtasks) {
+                        sub.setArchived(true);
+                    }
+                    repo.saveAll(subtasks);
+                }
+            });
+        }
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void clearAll(Long userId) {
+        List<Task> userTasks = repo.findByUserId(userId);
+        if (userTasks != null && !userTasks.isEmpty()) {
+            repo.deleteAll(userTasks);
+        }
     }
 }

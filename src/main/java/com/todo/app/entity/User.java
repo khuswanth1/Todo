@@ -34,7 +34,73 @@ public class User {
     @JsonProperty("deviceToken")
     private String fcmToken;
 
+    private String primaryColor;
+    private String bgColor;
+    private String sidebarColor;
+    private String cardColor;
+    private String headingColor;
+    private String textColor;
+    private String buttonBgColor;
+    private String buttonTextColor;
+    private String fontSize;
+    private String fontFamily;
+    private String borderRadius;
+    @Column(columnDefinition = "LONGTEXT")
+    private String logoImage;
+    private Boolean enableFontFamily = true;
+    private Boolean enableFontSize = true;
+    private Boolean enableBorderRadius = true;
+    private Boolean enableColors = false;
+
     // ✅ GETTERS & SETTERS
+
+    public String getPrimaryColor() { return primaryColor; }
+    public void setPrimaryColor(String primaryColor) { this.primaryColor = primaryColor; }
+
+    public String getBgColor() { return bgColor; }
+    public void setBgColor(String bgColor) { this.bgColor = bgColor; }
+
+    public String getSidebarColor() { return sidebarColor; }
+    public void setSidebarColor(String sidebarColor) { this.sidebarColor = sidebarColor; }
+
+    public String getCardColor() { return cardColor; }
+    public void setCardColor(String cardColor) { this.cardColor = cardColor; }
+
+    public String getHeadingColor() { return headingColor; }
+    public void setHeadingColor(String headingColor) { this.headingColor = headingColor; }
+
+    public String getTextColor() { return textColor; }
+    public void setTextColor(String textColor) { this.textColor = textColor; }
+
+    public String getButtonBgColor() { return buttonBgColor; }
+    public void setButtonBgColor(String buttonBgColor) { this.buttonBgColor = buttonBgColor; }
+
+    public String getButtonTextColor() { return buttonTextColor; }
+    public void setButtonTextColor(String buttonTextColor) { this.buttonTextColor = buttonTextColor; }
+
+    public String getFontSize() { return fontSize; }
+    public void setFontSize(String fontSize) { this.fontSize = fontSize; }
+
+    public String getFontFamily() { return fontFamily; }
+    public void setFontFamily(String fontFamily) { this.fontFamily = fontFamily; }
+
+    public String getBorderRadius() { return borderRadius; }
+    public void setBorderRadius(String borderRadius) { this.borderRadius = borderRadius; }
+
+    public String getLogoImage() { return logoImage; }
+    public void setLogoImage(String logoImage) { this.logoImage = logoImage; }
+
+    public Boolean getEnableFontFamily() { return enableFontFamily; }
+    public void setEnableFontFamily(Boolean enableFontFamily) { this.enableFontFamily = enableFontFamily; }
+
+    public Boolean getEnableFontSize() { return enableFontSize; }
+    public void setEnableFontSize(Boolean enableFontSize) { this.enableFontSize = enableFontSize; }
+
+    public Boolean getEnableBorderRadius() { return enableBorderRadius; }
+    public void setEnableBorderRadius(Boolean enableBorderRadius) { this.enableBorderRadius = enableBorderRadius; }
+
+    public Boolean getEnableColors() { return enableColors; }
+    public void setEnableColors(Boolean enableColors) { this.enableColors = enableColors; }
 
     public String getFcmToken() {
         return fcmToken;

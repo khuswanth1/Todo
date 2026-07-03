@@ -22,8 +22,44 @@ public class Task {
 
     private LocalDateTime remindAt;
     private boolean reminderSent = false;
+    private boolean archived = false;
+    private LocalDateTime completedAt;
+    private Integer reminderCount;
+    private Integer reminderInterval; // in minutes
 
     // ✅ GETTERS & SETTERS
+
+    public Integer getReminderCount() {
+        return reminderCount;
+    }
+
+    public void setReminderCount(Integer reminderCount) {
+        this.reminderCount = reminderCount;
+    }
+
+    public Integer getReminderInterval() {
+        return reminderInterval;
+    }
+
+    public void setReminderInterval(Integer reminderInterval) {
+        this.reminderInterval = reminderInterval;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
+    }
 
     public LocalDateTime getRemindAt() {
         return remindAt;

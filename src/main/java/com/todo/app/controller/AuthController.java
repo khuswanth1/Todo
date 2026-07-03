@@ -107,7 +107,7 @@ public class AuthController {
     }
 
     // ✅ UPDATE USER PROFILE
-    @PostMapping("/update-profile")
+    @PutMapping("/update-profile")
     public User updateProfile(@RequestHeader(value = "Authorization", required = false) String token,
             @RequestBody User profileData) {
         if (token == null || !token.startsWith("Bearer ")) {
