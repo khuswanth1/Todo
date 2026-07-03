@@ -8,7 +8,6 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import FactCheckIcon from "@mui/icons-material/FactCheck";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 export default function Header({ user, setToken, searchQuery, setSearchQuery, onEditProfile, onOpenSettings, onGoHome, theme, setTheme, isSystemDark }) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -110,43 +109,6 @@ export default function Header({ user, setToken, searchQuery, setSearchQuery, on
           <span className={`ml-4 text-[16px] font-black font-mono tracking-wider ${theme === 'dark' || (theme === 'system' && isSystemDark) ? 'text-indigo-400' : 'text-indigo-700'}`}>
             {formattedTime}
           </span>
-        </div>
-        
-        {/* Theme Dropdown */}
-        <div className="relative group/theme hidden sm:block">
-          <select
-            value={theme}
-            onChange={(e) => {
-              const newTheme = e.target.value;
-              setTheme(newTheme);
-              localStorage.setItem('theme', newTheme);
-              
-              // Disable custom colors so the mode switch actually takes effect visually
-              try {
-                const savedStr = localStorage.getItem('todo_theme_config');
-                if (savedStr) {
-                  const cfg = JSON.parse(savedStr);
-                  cfg.enableColors = false;
-                  localStorage.setItem('todo_theme_config', JSON.stringify(cfg));
-                }
-              } catch (err) {}
-              
-              document.documentElement.classList.remove('theme-colors');
-              window.dispatchEvent(new Event('storage'));
-            }}
-            className={`appearance-none px-4 py-2 pr-9 rounded-xl border text-[10px] font-black tracking-[0.1em] shadow-sm focus:outline-none transition-all duration-300 cursor-pointer hover:shadow-md
-              ${theme === "dark" || (theme === 'system' && isSystemDark)
-                ? "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750"
-                : "bg-white text-slate-700 border-slate-200 hover:border-indigo-200 hover:bg-slate-50"
-              }`}
-          >
-            <option value="light">Light Mode</option>
-            <option value="dark">Dark Mode</option>
-            <option value="system">System</option>
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 group-hover/theme:text-indigo-500 transition-colors">
-            <ExpandMoreIcon sx={{ fontSize: 16 }} />
-          </div>
         </div>
 
       <div className="relative" ref={dropdownRef}>

@@ -252,7 +252,7 @@ export default function Auth({ setToken }) {
   };
 
   return (
-    <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black font-sans">
+    <main style={{ backgroundColor: '#000000', minHeight: '100vh' }} className="relative flex items-center justify-center overflow-hidden font-sans">
 
       {/* Blended Black, Blue, and Red Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -266,7 +266,7 @@ export default function Auth({ setToken }) {
 
       {/* Main Card */}
       <div className="relative w-full max-w-xl px-4 py-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        <div className="bg-slate-900/40 backdrop-blur-3xl rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] border border-white/10 p-10 space-y-8">
+        <div style={{ backgroundColor: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', border: '1px solid rgba(255,255,255,0.08)', color: '#ffffff' }} className="rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] p-10 space-y-8">
 
           {/* LOGO / ICON AREA */}
           <div className="flex flex-col items-center gap-2">

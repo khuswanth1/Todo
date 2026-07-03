@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   server: {
     host: true,
+    port: process.env.PORT ? Number(process.env.PORT) : 5173,
     proxy: {
       '/tasks': 'http://localhost:8080',
       '/auth': 'http://localhost:8080',

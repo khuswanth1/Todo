@@ -778,7 +778,7 @@ export default function Dashboard({ token, setToken, theme, setTheme, isSystemDa
                   onClick={handleBulkDelete}
                   className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold shadow-lg transition-all active:scale-95 text-xs bg-rose-600 hover:bg-rose-500 text-white shadow-rose-200/20"
                 >
-                  <DeleteIcon fontSize="small" /> Delete Selected ({selectedTaskIds.length})
+                  <DeleteIcon fontSize="small" /> Delete ({selectedTaskIds.length})
                 </button>
               )}
               <button
