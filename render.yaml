@@ -1,3 +1,9 @@
+databases:
+  - name: todo-db
+    databaseName: todo
+    user: todo_user
+    plan: free
+
 services:
   - type: web
     name: todo-backend
@@ -5,27 +11,37 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
-      - key: DB_URL
-        sync: false
+      - key: DB_KIND
+        value: postgresql
+      - key: DB_HOST
+        fromDatabase:
+          name: todo-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: todo-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: todo-db
+          property: database
       - key: DB_USERNAME
-        sync: false
+        fromDatabase:
+          name: todo-db
+          property: user
       - key: DB_PASSWORD
-        sync: false
+        fromDatabase:
+          name: todo-db
+          property: password
+      - key: DB_QUERY
+        value: "?sslmode=prefer"
+      - key: DB_DRIVER
+        value: org.postgresql.Driver
+      - key: DB_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_FONTS_API_KEY
         value: AIzaSyDkSoKtrV_WGBXdzqw_hHhAxITX8RAqlew
-
-  - type: pserv
-    name: mysql
-    runtime: image
-    image:
-          url: mysql:8.0
-    plan: free
-    envVars:
-      - key: MYSQL_ROOT_PASSWORD
-        value: 2205
-      - key: MYSQL_DATABASE
-        value: todo

@@ -3,6 +3,8 @@ package com.todo.app.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.LocalDate;
 
 @Entity
@@ -26,7 +28,7 @@ public class User {
     private String username;
 
     private String mobile;
-    @Column(columnDefinition = "LONGTEXT")
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String profileImage;
     private String password;
     private String role;
@@ -45,7 +47,7 @@ public class User {
     private String fontSize;
     private String fontFamily;
     private String borderRadius;
-    @Column(columnDefinition = "LONGTEXT")
+    @JdbcTypeCode(SqlTypes.LONG32VARCHAR)
     private String logoImage;
     private Boolean enableFontFamily = true;
     private Boolean enableFontSize = true;
