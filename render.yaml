@@ -1,9 +1,3 @@
-databases:
-  - name: todo-db
-    databaseName: todo
-    user: todo_user
-    plan: free
-
 services:
   - type: web
     name: todo-backend
@@ -11,34 +5,17 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
-      - key: DB_KIND
-        value: postgresql
-      - key: DB_HOST
-        fromDatabase:
-          name: todo-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: todo-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: todo-db
-          property: database
+      # MySQL connection - Render has no managed MySQL, so these must point
+      # at an external MySQL host (e.g. Aiven / TiDB Cloud free tier).
+      # Set the values in the Render dashboard (Environment tab).
+      # DB_URL example:
+      #   jdbc:mysql://HOST:PORT/DATABASE?sslMode=REQUIRED&serverTimezone=UTC
+      - key: DB_URL
+        sync: false
       - key: DB_USERNAME
-        fromDatabase:
-          name: todo-db
-          property: user
+        sync: false
       - key: DB_PASSWORD
-        fromDatabase:
-          name: todo-db
-          property: password
-      - key: DB_QUERY
-        value: "?sslmode=prefer"
-      - key: DB_DRIVER
-        value: org.postgresql.Driver
-      - key: DB_DIALECT
-        value: org.hibernate.dialect.PostgreSQLDialect
+        sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
