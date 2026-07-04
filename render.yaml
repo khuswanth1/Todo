@@ -17,3 +17,15 @@ services:
         sync: false
       - key: GOOGLE_FONTS_API_KEY
         value: AIzaSyDkSoKtrV_WGBXdzqw_hHhAxITX8RAqlew
+
+  - type: pserv
+    name: mysql
+    runtime: image
+    image:
+          url: mysql:8.0
+    plan: free
+    envVars:
+      - key: MYSQL_ROOT_PASSWORD
+        value: 2205
+      - key: MYSQL_DATABASE
+        value: todo
