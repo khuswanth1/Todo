@@ -1,3 +1,8 @@
+databases:
+  - name: todo-db
+    plan: free
+    databaseName: todo
+
 services:
   - type: web
     name: todo-backend
@@ -5,17 +10,28 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
-      # MySQL connection - Render has no managed MySQL, so these must point
-      # at an external MySQL host (e.g. Aiven / TiDB Cloud free tier).
-      # Set the values in the Render dashboard (Environment tab).
-      # DB_URL example:
-      #   jdbc:mysql://HOST:PORT/DATABASE?sslMode=REQUIRED&serverTimezone=UTC
-      - key: DB_URL
-        sync: false
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: DB_HOST
+        fromDatabase:
+          name: todo-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: todo-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: todo-db
+          property: database
       - key: DB_USERNAME
-        sync: false
+        fromDatabase:
+          name: todo-db
+          property: user
       - key: DB_PASSWORD
-        sync: false
+        fromDatabase:
+          name: todo-db
+          property: password
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
