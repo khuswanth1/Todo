@@ -15,16 +15,16 @@ socket=/run/mysqld/mysqld.sock
 bind-address=0.0.0.0
 port=3306
 skip-name-resolve
+skip-grant-tables
 EOF
 
-# Initialize MariaDB database if not initialized
-if [ ! -d "/var/lib/mysql/mysql" ]; then
-    echo "Initializing MariaDB database..."
-    mysql_install_db --user=mysql --datadir=/var/lib/mysql 2>&1
-    echo "Database initialization complete."
-fi
+# Always re-initialize (Render containers are ephemeral)
+echo "Initializing MariaDB database..."
+rm -rf /var/lib/mysql/*
+mysql_install_db --user=mysql --datadir=/var/lib/mysql 2>&1
+echo "Database initialization complete."
 
-# Start MariaDB directly (not via mysqld_safe)
+# Start MariaDB directly with skip-grant-tables for initial setup
 echo "Starting MariaDB server..."
 /usr/bin/mysqld --user=mysql &
 MYSQL_PID=$!
@@ -33,7 +33,7 @@ MYSQL_PID=$!
 echo "Waiting for MariaDB to accept connections..."
 CONNECTED=0
 for i in $(seq 1 60); do
-    if mysqladmin --socket=/run/mysqld/mysqld.sock ping 2>/dev/null | grep -q "alive"; then
+    if echo "SELECT 1;" | mysql --socket=/run/mysqld/mysqld.sock 2>/dev/null; then
         echo "✅ MariaDB is accepting connections! (attempt $i)"
         CONNECTED=1
         break
@@ -44,29 +44,46 @@ done
 
 if [ "$CONNECTED" -ne 1 ]; then
     echo "❌ MariaDB failed to start after 60 seconds."
-    echo "=== MariaDB Error Log ==="
     cat /var/lib/mysql/*.err 2>/dev/null || echo "(no error log found)"
-    echo "=== Process Status ==="
-    ps aux
-    echo "========================="
     exit 1
 fi
 
-# Create database and set up access
-echo "Setting up database..."
-mysql --socket=/run/mysqld/mysqld.sock -u root -e "CREATE DATABASE IF NOT EXISTS todo;" 2>&1
-mysql --socket=/run/mysqld/mysqld.sock -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY '2205'; FLUSH PRIVILEGES;" 2>&1
-mysql --socket=/run/mysqld/mysqld.sock -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY '2205'; FLUSH PRIVILEGES;" 2>&1
+# Create database and set up root user with password
+echo "Setting up database and users..."
+mysql --socket=/run/mysqld/mysqld.sock <<EOSQL
+CREATE DATABASE IF NOT EXISTS todo;
+FLUSH PRIVILEGES;
+ALTER USER 'root'@'localhost' IDENTIFIED BY '2205';
+FLUSH PRIVILEGES;
+EOSQL
 echo "✅ Database 'todo' is ready."
 
-# Verify TCP connectivity
-echo "Verifying TCP connection on port 3306..."
-if mysqladmin -h 127.0.0.1 -P 3306 -u root -p2205 ping 2>/dev/null | grep -q "alive"; then
-    echo "✅ TCP connection verified!"
-else
-    echo "⚠️ TCP ping failed, trying socket connection test..."
-    mysql --socket=/run/mysqld/mysqld.sock -u root -p2205 -e "SELECT 1;" 2>&1
-fi
+# Restart MariaDB WITHOUT skip-grant-tables
+echo "Restarting MariaDB with authentication enabled..."
+kill $MYSQL_PID
+wait $MYSQL_PID 2>/dev/null || true
+
+# Remove skip-grant-tables from config
+cat > /etc/my.cnf.d/server.cnf <<EOF
+[mysqld]
+datadir=/var/lib/mysql
+socket=/run/mysqld/mysqld.sock
+bind-address=0.0.0.0
+port=3306
+skip-name-resolve
+EOF
+
+/usr/bin/mysqld --user=mysql &
+
+# Wait for restart
+echo "Waiting for MariaDB restart..."
+for i in $(seq 1 30); do
+    if mysqladmin --socket=/run/mysqld/mysqld.sock -u root -p2205 ping 2>/dev/null | grep -q "alive"; then
+        echo "✅ MariaDB restarted with auth enabled!"
+        break
+    fi
+    sleep 1
+done
 
 # Start the Spring Boot application
 echo "=== Starting Spring Boot Application ==="
