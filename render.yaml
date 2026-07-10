@@ -5,22 +5,13 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
-      - key: DB_URL
-        sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_DRIVER
-        value: com.mysql.cj.jdbc.Driver
-
-      # EMAIL Configuration
+      # EMAIL Configuration (Optional - set in Render dashboard)
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD
         sync: false
 
-      # GOOGLE OAuth
+      # GOOGLE OAuth (Optional - set in Render dashboard)
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
