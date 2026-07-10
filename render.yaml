@@ -5,20 +5,30 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
-      # MySQL connection - Render has no managed MySQL, so these must point
-      # at an external MySQL host (e.g. Aiven / TiDB Cloud free tier).
+      # DATABASE - PostgreSQL connection
       # Set the values in the Render dashboard (Environment tab).
-      # DB_URL example:
-      #   jdbc:mysql://HOST:PORT/DATABASE?sslMode=REQUIRED&serverTimezone=UTC
+      # DB_URL example (for external PostgreSQL):
+      #   jdbc:postgresql://HOST:PORT/DATABASE?sslmode=require
+      # DB_DRIVER example: org.postgresql.Driver
       - key: DB_URL
         sync: false
       - key: DB_USERNAME
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_DRIVER
+        value: org.postgresql.Driver
+
+      # EMAIL Configuration
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+
+      # GOOGLE OAuth
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
       - key: GOOGLE_FONTS_API_KEY
-        value: AIzaSyDkSoKtrV_WGBXdzqw_hHhAxITX8RAqlew
+        sync: false
