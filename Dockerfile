@@ -10,6 +10,7 @@ WORKDIR /app
 RUN apk add --no-cache mariadb mariadb-client
 COPY --from=build /app/target/*.jar app.jar
 COPY entrypoint.sh .
+RUN sed -i 's/\r$//' entrypoint.sh
 RUN chmod +x entrypoint.sh
 EXPOSE 8080
 ENTRYPOINT ["./entrypoint.sh"]
