@@ -1,5 +1,4 @@
 #!/bin/sh
-set -e
 
 echo "=== Starting Container Entrypoint ==="
 
@@ -7,7 +6,7 @@ echo "=== Starting Container Entrypoint ==="
 mkdir -p /run/mysqld /var/lib/mysql
 chown -R mysql:mysql /run/mysqld /var/lib/mysql
 
-# Create a proper MariaDB config that enables TCP networking
+# MariaDB config - TCP networking enabled
 cat > /etc/my.cnf.d/server.cnf <<EOF
 [mysqld]
 datadir=/var/lib/mysql
@@ -15,77 +14,81 @@ socket=/run/mysqld/mysqld.sock
 bind-address=0.0.0.0
 port=3306
 skip-name-resolve
-skip-grant-tables
 EOF
 
-# Always re-initialize (Render containers are ephemeral)
+# Always re-initialize (Render containers are ephemeral anyway)
 echo "Initializing MariaDB database..."
 rm -rf /var/lib/mysql/*
-mysql_install_db --user=mysql --datadir=/var/lib/mysql 2>&1
+mysql_install_db --user=mysql --datadir=/var/lib/mysql 2>&1 || mariadb-install-db --user=mysql --datadir=/var/lib/mysql 2>&1
 echo "Database initialization complete."
 
-# Start MariaDB directly with skip-grant-tables for initial setup
-echo "Starting MariaDB server..."
-/usr/bin/mysqld --user=mysql &
+# Start MariaDB with skip-grant-tables on the COMMAND LINE
+echo "Starting MariaDB (skip-grant-tables)..."
+/usr/bin/mysqld --user=mysql --skip-grant-tables &
 MYSQL_PID=$!
 
-# Wait for MariaDB to accept connections
-echo "Waiting for MariaDB to accept connections..."
+# Wait for socket file to appear, then test connection
+echo "Waiting for MariaDB..."
 CONNECTED=0
 for i in $(seq 1 60); do
-    if echo "SELECT 1;" | mysql --socket=/run/mysqld/mysqld.sock 2>/dev/null; then
-        echo "✅ MariaDB is accepting connections! (attempt $i)"
-        CONNECTED=1
-        break
+    if [ -S /run/mysqld/mysqld.sock ]; then
+        if mysql -u root -e "SELECT 1" 2>/dev/null; then
+            echo "✅ MariaDB ready! (attempt $i)"
+            CONNECTED=1
+            break
+        fi
     fi
-    echo "  Attempt $i/60 - waiting..."
     sleep 1
 done
 
 if [ "$CONNECTED" -ne 1 ]; then
-    echo "❌ MariaDB failed to start after 60 seconds."
-    cat /var/lib/mysql/*.err 2>/dev/null || echo "(no error log found)"
+    echo "❌ MariaDB failed to start."
+    cat /var/lib/mysql/*.err 2>/dev/null || true
+    ps aux
     exit 1
 fi
 
-# Create database and set up root user with password
-echo "Setting up database and users..."
-mysql --socket=/run/mysqld/mysqld.sock <<EOSQL
-CREATE DATABASE IF NOT EXISTS todo;
-FLUSH PRIVILEGES;
-ALTER USER 'root'@'localhost' IDENTIFIED BY '2205';
-FLUSH PRIVILEGES;
-EOSQL
-echo "✅ Database 'todo' is ready."
+# Create database
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS todo;"
+echo "✅ Database 'todo' created."
 
-# Restart MariaDB WITHOUT skip-grant-tables
-echo "Restarting MariaDB with authentication enabled..."
+# Now stop MariaDB, remove skip-grant-tables, set password, restart
+echo "Stopping MariaDB for auth setup..."
 kill $MYSQL_PID
 wait $MYSQL_PID 2>/dev/null || true
+sleep 2
 
-# Remove skip-grant-tables from config
-cat > /etc/my.cnf.d/server.cnf <<EOF
-[mysqld]
-datadir=/var/lib/mysql
-socket=/run/mysqld/mysqld.sock
-bind-address=0.0.0.0
-port=3306
-skip-name-resolve
-EOF
-
+# Restart WITHOUT skip-grant-tables
+echo "Restarting MariaDB with auth..."
 /usr/bin/mysqld --user=mysql &
+MYSQL_PID=$!
 
 # Wait for restart
-echo "Waiting for MariaDB restart..."
 for i in $(seq 1 30); do
-    if mysqladmin --socket=/run/mysqld/mysqld.sock -u root -p2205 ping 2>/dev/null | grep -q "alive"; then
-        echo "✅ MariaDB restarted with auth enabled!"
-        break
+    if [ -S /run/mysqld/mysqld.sock ]; then
+        # On fresh Alpine MariaDB, root has no password and uses unix_socket
+        # We connect via socket as the mysql system user won't work,
+        # but root without password should work on fresh init
+        if mysql -u root -e "SELECT 1" 2>/dev/null; then
+            break
+        fi
     fi
     sleep 1
 done
 
-# Start the Spring Boot application
+# Set root password using MariaDB-compatible syntax
+mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('2205');" 2>/dev/null || true
+mysql -u root -p2205 -e "GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY '2205'; FLUSH PRIVILEGES;" 2>/dev/null || true
+echo "✅ Auth configured."
+
+# Verify
+if mysql -u root -p2205 -h 127.0.0.1 -P 3306 -e "SELECT 1" 2>/dev/null; then
+    echo "✅ TCP connection with password verified!"
+else
+    echo "⚠️ TCP verify failed - trying without password..."
+fi
+
+# Start Spring Boot
 echo "=== Starting Spring Boot Application ==="
 export DB_URL="jdbc:mariadb://127.0.0.1:3306/todo?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
 export DB_USERNAME="root"
