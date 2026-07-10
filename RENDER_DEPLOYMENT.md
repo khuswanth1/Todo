@@ -1,199 +1,221 @@
-# Render Deployment Guide
+# Render Deployment Guide - MySQL
 
-## ⚡ Quick Start (5 minutes)
+## ⚡ Quick Start (10 minutes)
 
-1. **Create a PostgreSQL database** (Render free tier recommended)
-2. **Go to Render dashboard** → Your service → Environment tab
-3. **Add 4 environment variables:**
-   ```
-   DB_URL=jdbc:postgresql://your-host:5432/your-db?sslmode=require
-   DB_USERNAME=your_user
-   DB_PASSWORD=your_pass
-   DB_DRIVER=org.postgresql.Driver
-   ```
-4. **Click "Deploy"** and wait 3-5 minutes
-5. ✅ Your app should start successfully!
+1. **Get free MySQL database** (TiDB Cloud or Aiven)
+2. **Set 4 environment variables on Render Dashboard**
+3. **Deploy and wait 3-5 minutes**
+4. ✅ Done!
 
 ---
 
 ## Prerequisites
-- A PostgreSQL database (e.g., from Render, Aiven, Railway, or Neon)
-- Gmail app password for email service
-- Google OAuth credentials (optional, for OAuth login)
 
-## ⚠️ CRITICAL: Set Environment Variables FIRST
+- **MySQL Database** (free options):
+  - [TiDB Cloud](https://tidbcloud.com/free-tier) - Easiest, MySQL 8.0 compatible
+  - [Aiven](https://aiven.io/) - Free tier available
+  - [PlanetScale](https://planetscale.com/) - MySQL compatible
+- Gmail account with app password for email
+- GitHub repository connected to Render
 
-**The deployment will fail if these environment variables are not set!**
+---
 
-### Step 1: Go to Render Dashboard
-1. Open https://dashboard.render.com
-2. Click on your "todo-backend" service
-3. Click the **"Environment"** tab on the left sidebar
+## Step 1: Create Free MySQL Database
 
-### Step 2: Add Database Configuration (Required)
-You MUST create a PostgreSQL database first:
-- Use Render PostgreSQL, Neon, Railway, or Supabase (free tier available)
-- Get your connection details
+### Option A: TiDB Cloud (Recommended - Easiest)
 
-Then add these exact environment variables:
+1. Go to https://tidbcloud.com/free-tier
+2. Sign up (free tier available)
+3. Create a cluster (free):
+   - Region: Any
+   - Database: `todo`
+4. Go to **Cluster** → **Connection**
+5. Copy the connection details:
+   - **Host:** (looks like `gateway01.xxx.prod.cluster.tidbcloud.com`)
+   - **Username:** `root`
+   - **Password:** (set during creation)
 
-| Key | Value | Example |
-|-----|-------|---------|
-| `DB_URL` | PostgreSQL JDBC URL with `?sslmode=require` | `jdbc:postgresql://dpg-xxxxx.render.internal:5432/todo_db?sslmode=require` |
-| `DB_USERNAME` | Database username | `postgres` |
-| `DB_PASSWORD` | Database password | `your_secure_password_here` |
-| `DB_DRIVER` | PostgreSQL driver (exact) | `org.postgresql.Driver` |
+### Option B: Aiven (Alternative)
 
-**DO NOT include `jdbc:mysql://` - you MUST use PostgreSQL!**
+1. Go to https://aiven.io/
+2. Sign up → Create free MySQL service
+3. Copy connection details from dashboard
 
-Example values:
-```
-DB_URL=jdbc:postgresql://dpg-xxxxx.render.internal:5432/todo_db?sslmode=require
-DB_USERNAME=postgres
-DB_PASSWORD=MySecurePassword123!
-DB_DRIVER=org.postgresql.Driver
-```
+---
 
-### Email Configuration (Required for email features)
-```
-MAIL_USERNAME=your_email@gmail.com
-MAIL_PASSWORD=your_app_password
-```
-
-**Note:** Use a Gmail App Password, not your regular password:
-1. Go to https://myaccount.google.com/apppasswords
-2. Generate an app password for Mail
-3. Use the generated password as MAIL_PASSWORD
-
-### Google OAuth (Optional)
-```
-GOOGLE_CLIENT_ID=your_client_id
-GOOGLE_CLIENT_SECRET=your_client_secret
-GOOGLE_FONTS_API_KEY=your_api_key
-```
-
-## Step-by-Step Deployment
-
-### Step 1: Create PostgreSQL Database on Render
-
-1. Go to https://dashboard.render.com
-2. Click **"New +"** in top right → Select **"PostgreSQL"**
-3. Fill in the form:
-   - **Name:** `todo-db` (or any name)
-   - **Database:** `todo` (or any name)
-   - **User:** `postgres` (default)
-   - **Region:** Same as your web service (important!)
-   - **Plan:** Free (if available)
-4. Click **"Create Database"**
-5. Wait for it to initialize (2-3 minutes)
-6. **Copy the connection details:**
-   - Internal Database URL (the one with `.render.internal`)
-   - Username
-   - Password
-
-### Step 2: Update GitHub with Latest Code
+## Step 2: Update Code and Push to GitHub
 
 ```bash
 git add .
-git commit -m "Fix Render deployment: add PostgreSQL dialect and env var support"
+git commit -m "Fix Render deployment: use MySQL8Dialect"
 git push origin master
 ```
 
-### Step 3: Deploy Web Service on Render
+---
 
+## Step 3: Deploy on Render
+
+### 3a. Create Web Service
 1. Go to https://dashboard.render.com
 2. Click **"New +"** → **"Web Service"**
-3. Connect your GitHub repository (`khuswanth1/Todo`)
-4. Fill in the form:
+3. Select your GitHub repository (`khuswanth1/Todo`)
+4. Configuration:
    - **Name:** `todo-backend`
    - **Branch:** `master`
    - **Root Directory:** (leave empty)
    - **Runtime:** `Docker`
    - **Plan:** Free
-5. Click **"Create Web Service"**
-6. **Don't start deploying yet!**
+5. **DO NOT click Deploy Yet!**
 
-### Step 4: Add Environment Variables (CRITICAL!)
+### 3b. Set Environment Variables (CRITICAL!)
 
-1. In your new web service dashboard, click **"Environment"** tab
-2. Click **"Add Environment Variable"** and add these 4:
+1. Click **"Environment"** tab on the left
+2. Add these 4 variables:
 
-| Key | Value |
-|-----|-------|
-| `DB_URL` | `jdbc:postgresql://dpg-xxxxx.render.internal:5432/todo?sslmode=require` ← **USE .render.internal** |
-| `DB_USERNAME` | `postgres` |
-| `DB_PASSWORD` | *(Copy from PostgreSQL service details)* |
-| `DB_DRIVER` | `org.postgresql.Driver` |
+| Key | Value | Example |
+|-----|-------|---------|
+| `DB_URL` | MySQL JDBC URL | `jdbc:mysql://gateway01.xxx.prod.cluster.tidbcloud.com:4000/todo?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true` |
+| `DB_USERNAME` | Database username | `root` |
+| `DB_PASSWORD` | Database password | `YourPassword123!` |
+| `DB_DRIVER` | MySQL driver | `com.mysql.cj.jdbc.Driver` |
+
+**Important:** Use `?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true` for MySQL!
 
 3. Click **"Save Changes"**
 4. Click **"Deploy"** button
 
-### Step 5: Monitor Deployment
+### 3c: Monitor Deployment
+- Watch the logs
+- Should see: ✅ "Your service is live" (3-5 minutes)
 
-1. Watch the "Deploy" log panel
-2. You should see:
-   - ✅ Build successful
-   - ✅ Application running on port 8080
-   - ✅ Hibernate initializing tables
-3. Wait for **"Your service is live"** message (3-5 minutes)
+---
 
-### Step 6: Test Your App
+## Step 4: Add Email Configuration (Optional)
 
-Visit: `https://your-service-name.onrender.com`
+To enable email notifications, add to Environment tab:
 
-If deployment fails, jump to Troubleshooting section below.
+```
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+```
+
+**How to get Gmail app password:**
+1. Go to https://myaccount.google.com/apppasswords
+2. Select Mail + Windows Computer
+3. Copy the generated 16-char password
+4. Use it as `MAIL_PASSWORD`
+
+---
+
+## Step 5: Add Google OAuth (Optional)
+
+To enable Google login, add to Environment tab:
+
+```
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_FONTS_API_KEY=your-api-key
+```
+
+---
 
 ## Troubleshooting
 
+### ❌ "Connection is not available" / "Connection timed out"
+
+**Cause:** Wrong database URL or credentials
+
+**Solution:**
+1. Check your MySQL provider's connection details
+2. Verify URL format matches:
+   ```
+   jdbc:mysql://HOST:PORT/DATABASE?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+   ```
+3. Test connection locally:
+   ```bash
+   mysql -h your-host -P 4000 -u root -p
+   ```
+4. Update environment variables on Render with correct values
+
 ### ❌ "Unable to determine Dialect without JDBC metadata"
-**Cause:** Environment variables are NOT set or incorrect database connection details
+
+**Cause:** Database connection failed or driver issue
 
 **Solution:**
-1. Go to Render Dashboard → Environment tab
-2. Add ALL 4 database environment variables:
-   - `DB_URL` (with `?sslmode=require`)
-   - `DB_USERNAME`
-   - `DB_PASSWORD`
-   - `DB_DRIVER` = `org.postgresql.Driver`
-3. Click "Deploy" to redeploy
-4. Wait 2-3 minutes for deployment to complete
+- Verify `DB_DRIVER=com.mysql.cj.jdbc.Driver` (exact value)
+- Check all 4 environment variables are set
+- Redeploy: Click "Deploy" button again
 
-### ❌ "Connection is not available" / Database timeout
-**Cause:** Database credentials are wrong or database isn't reachable
+### ❌ "Exited with status 1" / "No open ports detected"
+
+**Cause:** Application crashed during startup
 
 **Solution:**
-- Test connection locally first:
-  ```bash
-  psql -h your-host -U your-username -d your-database
-  ```
-- Verify exact values from your database provider (Render, Neon, etc.)
-- Check that PostgreSQL URL includes `?sslmode=require`
-- If using Render PostgreSQL, MUST use `.render.internal` hostname (not `.onrender.com`)
+1. View deployment logs
+2. Look for database connection errors
+3. Check:
+   - Is database URL correct?
+   - Are username/password correct?
+   - Is database accepting connections?
+4. Fix variables and redeploy
 
-### ❌ "Exited with status 1"
-**Cause:** Application crashed before binding to port (usually database connection issue)
-
-**Solution:**
-1. Check deployment logs for the actual error
-2. Look for "HikariPool", "SQLException", or "Unable to open JDBC Connection"
-3. This indicates database configuration is wrong
-4. Re-check environment variables match your database exactly
-
-### ❌ "No open ports detected"
-**Cause:** App crashed before binding to port 8080
+### ❌ SSL/TLS Connection Error
 
 **Solution:**
-- Read the full error log above this message
-- Usually indicates database connection failure
-- Follow the "Connection is not available" troubleshooting above
+- Ensure URL includes `?useSSL=true`
+- Some providers need `&sslMode=REQUIRED` instead
+- Try: `jdbc:mysql://HOST:PORT/DB?useSSL=true&allowPublicKeyRetrieval=true`
+
+---
 
 ## Local Development
 
-For local development, override environment variables:
-```bash
-export DB_URL=jdbc:mysql://localhost:3306/todo?...
-export DB_USERNAME=root
-export DB_PASSWORD=your_local_password
+For local MySQL on your computer:
+
+1. Install MySQL locally
+2. Create database:
+   ```sql
+   CREATE DATABASE todo;
+   ```
+3. Set environment variables:
+   ```bash
+   export DB_URL=jdbc:mysql://localhost:3306/todo?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+   export DB_USERNAME=root
+   export DB_PASSWORD=your_local_password
+   ```
+4. Run app locally:
+   ```bash
+   mvn spring-boot:run
+   ```
+
+Or keep defaults in `application.properties` for local dev.
+
+---
+
+## Database URL Examples
+
+**TiDB Cloud:**
+```
+jdbc:mysql://gateway01.us-east-1.prod.cluster.tidbcloud.com:4000/todo?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
 ```
 
-Or edit `src/main/resources/application.properties` defaults for local dev.
+**PlanetScale:**
+```
+jdbc:mysql://aws.connect.psdb.cloud:3306/todo?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+```
+
+**Local MySQL:**
+```
+jdbc:mysql://localhost:3306/todo?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+```
+
+---
+
+## Testing After Deployment
+
+1. Visit your app: `https://your-service-name.onrender.com`
+2. Check if it loads (may take 30 seconds on first request)
+3. Try creating an account or logging in
+4. Check browser console for errors (F12)
+
+If still having issues, check deployment logs on Render dashboard.
