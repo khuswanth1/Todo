@@ -2,7 +2,7 @@
 
 ## What I Fixed ✅
 
-1. **Changed from PostgreSQL to MySQL8Dialect** ✓
+1. **Configured for MySQL database** ✓
 2. **Updated connection pool settings** ✓
 3. **Added proper environment variable support** ✓
 4. **Created complete deployment guide** ✓
@@ -79,7 +79,7 @@ DB_URL=jdbc:mysql://localhost:3306/todo?useSSL=false&allowPublicKeyRetrieval=tru
 ❌ Forget to set environment variables → App won't start  
 ❌ Wrong database URL format → Connection fails  
 ❌ Forget `?useSSL=true` → SSL error  
-❌ Use `org.postgresql.Driver` → Driver not found  
+❌ Use wrong driver class name → Driver not found  
 
 ---
 
