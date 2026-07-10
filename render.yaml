@@ -1,3 +1,7 @@
+databases:
+  - name: todo-db
+    plan: free
+
 services:
   - type: web
     name: todo-backend
@@ -5,29 +9,19 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
-      # DATABASE - MySQL connection
-      # Render has no managed MySQL, use external service:
-      # - Aiven (free tier available)
-      # - TiDB Cloud (free tier)
-      # - PlanetScale
-      # Set the values in the Render dashboard (Environment tab).
-      # DB_URL example: jdbc:mysql://HOST:PORT/DATABASE?useSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
-      - key: DB_URL
-        sync: false
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_DRIVER
-        value: com.mysql.cj.jdbc.Driver
+      # DATABASE - Automatically linked PostgreSQL database
+      - key: DATABASE_URL
+        fromDatabase:
+          name: todo-db
+          property: connectionString
 
-      # EMAIL Configuration (Gmail)
+      # EMAIL Configuration
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD
         sync: false
 
-      # GOOGLE OAuth (Optional)
+      # GOOGLE OAuth
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET

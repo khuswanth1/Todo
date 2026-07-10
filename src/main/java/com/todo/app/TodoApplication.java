@@ -44,6 +44,24 @@ public class TodoApplication {
             }
         }
 
+        // Dynamically set Hibernate Dialect based on active DB URL to resolve Dialect detection failures
+        String activeDbUrl = System.getProperty("DB_URL");
+        if (activeDbUrl == null) {
+            activeDbUrl = System.getenv("DB_URL");
+        }
+        if (activeDbUrl == null) {
+            activeDbUrl = System.getenv("DATABASE_URL");
+        }
+        if (activeDbUrl != null) {
+            if (activeDbUrl.contains("postgresql") || activeDbUrl.contains("postgres")) {
+                System.setProperty("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQLDialect");
+                System.out.println("📦 Set JPA database platform to PostgreSQLDialect");
+            } else if (activeDbUrl.contains("mysql")) {
+                System.setProperty("spring.jpa.database-platform", "org.hibernate.dialect.MySQLDialect");
+                System.out.println("📦 Set JPA database platform to MySQLDialect");
+            }
+        }
+
         try {
             SpringApplication.run(TodoApplication.class, args);
         } catch (Exception e) {
