@@ -44,4 +44,7 @@ mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '2205'; FLUSH PRIV
 
 # Start the Spring Boot application
 echo "Starting Spring Boot application..."
+export DB_URL="jdbc:mariadb://localhost:3306/todo?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+export DB_DRIVER="org.mariadb.jdbc.Driver"
 exec java -jar app.jar
+
