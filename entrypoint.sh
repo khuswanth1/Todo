@@ -7,7 +7,7 @@ chown -R mysql:mysql /run/mysqld /var/lib/mysql
 # Initialize MariaDB database if not initialized
 if [ ! -d "/var/lib/mysql/mysql" ]; then
     echo "Initializing MariaDB database..."
-    mysql_install_db --user=mysql --datadir=/var/lib/mysql --rpm
+    mariadb-install-db --user=mysql --datadir=/var/lib/mysql
 fi
 
 # Start MariaDB in background
