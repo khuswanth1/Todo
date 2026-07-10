@@ -77,12 +77,12 @@ public class VapidKeyInitializer {
             System.out.println("==================================================");
 
             // Write to a text file in project root
-            File f = new File("D:/Todo-lists-main/vapid_keys.txt");
+            File f = new File("vapid_keys.txt");
             try (FileWriter writer = new FileWriter(f)) {
                 writer.write("vapid.public=" + publicKey + "\n");
                 writer.write("vapid.private=" + privateKey + "\n");
             }
-            System.out.println("✅ Keys saved to D:/Todo-lists-main/vapid_keys.txt");
+            System.out.println("✅ Keys saved to vapid_keys.txt");
 
         } catch (Exception e) {
             System.err.println("❌ Failed to generate VAPID keys: " + e.getMessage());
