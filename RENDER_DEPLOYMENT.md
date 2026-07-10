@@ -1,27 +1,56 @@
 # Render Deployment Guide
 
+## ⚡ Quick Start (5 minutes)
+
+1. **Create a PostgreSQL database** (Render free tier recommended)
+2. **Go to Render dashboard** → Your service → Environment tab
+3. **Add 4 environment variables:**
+   ```
+   DB_URL=jdbc:postgresql://your-host:5432/your-db?sslmode=require
+   DB_USERNAME=your_user
+   DB_PASSWORD=your_pass
+   DB_DRIVER=org.postgresql.Driver
+   ```
+4. **Click "Deploy"** and wait 3-5 minutes
+5. ✅ Your app should start successfully!
+
+---
+
 ## Prerequisites
 - A PostgreSQL database (e.g., from Render, Aiven, Railway, or Neon)
 - Gmail app password for email service
 - Google OAuth credentials (optional, for OAuth login)
 
-## Environment Variables to Set in Render Dashboard
+## ⚠️ CRITICAL: Set Environment Variables FIRST
 
-Add these environment variables in the Render Web Service dashboard (Environment tab):
+**The deployment will fail if these environment variables are not set!**
 
-### Database Configuration (Required)
-```
-DB_URL=jdbc:postgresql://HOST:PORT/DATABASE?sslmode=require
-DB_USERNAME=your_db_username
-DB_PASSWORD=your_db_password
-DB_DRIVER=org.postgresql.Driver
-```
+### Step 1: Go to Render Dashboard
+1. Open https://dashboard.render.com
+2. Click on your "todo-backend" service
+3. Click the **"Environment"** tab on the left sidebar
 
-**Example (using Render PostgreSQL):**
+### Step 2: Add Database Configuration (Required)
+You MUST create a PostgreSQL database first:
+- Use Render PostgreSQL, Neon, Railway, or Supabase (free tier available)
+- Get your connection details
+
+Then add these exact environment variables:
+
+| Key | Value | Example |
+|-----|-------|---------|
+| `DB_URL` | PostgreSQL JDBC URL with `?sslmode=require` | `jdbc:postgresql://dpg-xxxxx.render.internal:5432/todo_db?sslmode=require` |
+| `DB_USERNAME` | Database username | `postgres` |
+| `DB_PASSWORD` | Database password | `your_secure_password_here` |
+| `DB_DRIVER` | PostgreSQL driver (exact) | `org.postgresql.Driver` |
+
+**DO NOT include `jdbc:mysql://` - you MUST use PostgreSQL!**
+
+Example values:
 ```
 DB_URL=jdbc:postgresql://dpg-xxxxx.render.internal:5432/todo_db?sslmode=require
-DB_USERNAME=todo_user
-DB_PASSWORD=your_secure_password
+DB_USERNAME=postgres
+DB_PASSWORD=MySecurePassword123!
 DB_DRIVER=org.postgresql.Driver
 ```
 
@@ -43,51 +72,120 @@ GOOGLE_CLIENT_SECRET=your_client_secret
 GOOGLE_FONTS_API_KEY=your_api_key
 ```
 
-## Steps to Deploy
+## Step-by-Step Deployment
 
-1. **Prepare your database:**
-   - Create a PostgreSQL database
-   - Note the connection details (host, port, database name, username, password)
+### Step 1: Create PostgreSQL Database on Render
 
-2. **Push to GitHub:**
-   ```bash
-   git push origin master
-   ```
+1. Go to https://dashboard.render.com
+2. Click **"New +"** in top right → Select **"PostgreSQL"**
+3. Fill in the form:
+   - **Name:** `todo-db` (or any name)
+   - **Database:** `todo` (or any name)
+   - **User:** `postgres` (default)
+   - **Region:** Same as your web service (important!)
+   - **Plan:** Free (if available)
+4. Click **"Create Database"**
+5. Wait for it to initialize (2-3 minutes)
+6. **Copy the connection details:**
+   - Internal Database URL (the one with `.render.internal`)
+   - Username
+   - Password
 
-3. **Connect to Render:**
-   - Go to https://dashboard.render.com
-   - Click "New +" → "Web Service"
-   - Connect your GitHub repository
-   - Set Name: `todo-backend`
-   - Set Root Directory: `/` (or leave empty)
-   - Select Runtime: `Docker`
-   - Set Plan: Free (or paid tier)
+### Step 2: Update GitHub with Latest Code
 
-4. **Add Environment Variables:**
-   - In the Render dashboard, go to Environment tab
-   - Add all required variables from above
-   - Click Deploy
+```bash
+git add .
+git commit -m "Fix Render deployment: add PostgreSQL dialect and env var support"
+git push origin master
+```
 
-5. **Monitor Deployment:**
-   - Watch the deployment logs
-   - Service should start successfully and bind to port 8080
+### Step 3: Deploy Web Service on Render
+
+1. Go to https://dashboard.render.com
+2. Click **"New +"** → **"Web Service"**
+3. Connect your GitHub repository (`khuswanth1/Todo`)
+4. Fill in the form:
+   - **Name:** `todo-backend`
+   - **Branch:** `master`
+   - **Root Directory:** (leave empty)
+   - **Runtime:** `Docker`
+   - **Plan:** Free
+5. Click **"Create Web Service"**
+6. **Don't start deploying yet!**
+
+### Step 4: Add Environment Variables (CRITICAL!)
+
+1. In your new web service dashboard, click **"Environment"** tab
+2. Click **"Add Environment Variable"** and add these 4:
+
+| Key | Value |
+|-----|-------|
+| `DB_URL` | `jdbc:postgresql://dpg-xxxxx.render.internal:5432/todo?sslmode=require` ← **USE .render.internal** |
+| `DB_USERNAME` | `postgres` |
+| `DB_PASSWORD` | *(Copy from PostgreSQL service details)* |
+| `DB_DRIVER` | `org.postgresql.Driver` |
+
+3. Click **"Save Changes"**
+4. Click **"Deploy"** button
+
+### Step 5: Monitor Deployment
+
+1. Watch the "Deploy" log panel
+2. You should see:
+   - ✅ Build successful
+   - ✅ Application running on port 8080
+   - ✅ Hibernate initializing tables
+3. Wait for **"Your service is live"** message (3-5 minutes)
+
+### Step 6: Test Your App
+
+Visit: `https://your-service-name.onrender.com`
+
+If deployment fails, jump to Troubleshooting section below.
 
 ## Troubleshooting
 
-### "No open ports detected" error
-- Check that `PORT` environment variable is not set (or set to 8080)
-- Verify `server.port=${PORT:8080}` in application.properties
+### ❌ "Unable to determine Dialect without JDBC metadata"
+**Cause:** Environment variables are NOT set or incorrect database connection details
 
-### "Connection is not available" / Database timeout
-- Verify DB_URL is correct and database is accessible
-- Check DB_USERNAME and DB_PASSWORD are correct
-- Ensure PostgreSQL server is running and accepting connections
-- If using Render PostgreSQL, make sure to add `.render.internal` domain
+**Solution:**
+1. Go to Render Dashboard → Environment tab
+2. Add ALL 4 database environment variables:
+   - `DB_URL` (with `?sslmode=require`)
+   - `DB_USERNAME`
+   - `DB_PASSWORD`
+   - `DB_DRIVER` = `org.postgresql.Driver`
+3. Click "Deploy" to redeploy
+4. Wait 2-3 minutes for deployment to complete
 
-### Application crashes on startup
-- Check deployment logs for detailed error messages
-- Verify all required environment variables are set
-- Ensure database schema exists (app will create tables on first run)
+### ❌ "Connection is not available" / Database timeout
+**Cause:** Database credentials are wrong or database isn't reachable
+
+**Solution:**
+- Test connection locally first:
+  ```bash
+  psql -h your-host -U your-username -d your-database
+  ```
+- Verify exact values from your database provider (Render, Neon, etc.)
+- Check that PostgreSQL URL includes `?sslmode=require`
+- If using Render PostgreSQL, MUST use `.render.internal` hostname (not `.onrender.com`)
+
+### ❌ "Exited with status 1"
+**Cause:** Application crashed before binding to port (usually database connection issue)
+
+**Solution:**
+1. Check deployment logs for the actual error
+2. Look for "HikariPool", "SQLException", or "Unable to open JDBC Connection"
+3. This indicates database configuration is wrong
+4. Re-check environment variables match your database exactly
+
+### ❌ "No open ports detected"
+**Cause:** App crashed before binding to port 8080
+
+**Solution:**
+- Read the full error log above this message
+- Usually indicates database connection failure
+- Follow the "Connection is not available" troubleshooting above
 
 ## Local Development
 
