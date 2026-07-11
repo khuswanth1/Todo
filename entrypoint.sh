@@ -71,7 +71,7 @@ done
 
 # Restart WITHOUT skip-grant-tables
 echo "Restarting MariaDB with auth..."
-/usr/bin/mysqld --user=mysql &
+/usr/bin/mysqld --user=mysql --port=3306 --bind-address=0.0.0.0 --skip-name-resolve &
 MYSQL_PID=$!
 
 # Wait for restart
