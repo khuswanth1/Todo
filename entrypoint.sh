@@ -54,9 +54,20 @@ echo "✅ Database 'todo' created."
 
 # Now stop MariaDB, remove skip-grant-tables, set password, restart
 echo "Stopping MariaDB for auth setup..."
-kill $MYSQL_PID
-wait $MYSQL_PID 2>/dev/null || true
-sleep 2
+mysqladmin -u root shutdown 2>/dev/null || kill -9 $MYSQL_PID 2>/dev/null || true
+sleep 1
+
+# Clean up socket file to avoid stale connection issues
+rm -f /run/mysqld/mysqld.sock
+
+# Wait for process to fully exit
+for i in $(seq 1 10); do
+    if ! ps -p $MYSQL_PID > /dev/null 2>&1; then
+        echo "MariaDB stopped."
+        break
+    fi
+    sleep 1
+done
 
 # Restart WITHOUT skip-grant-tables
 echo "Restarting MariaDB with auth..."
@@ -94,4 +105,10 @@ export DB_URL="jdbc:mariadb://127.0.0.1:3306/todo?useSSL=false&allowPublicKeyRet
 export DB_USERNAME="root"
 export DB_PASSWORD="2205"
 export DB_DRIVER="org.mariadb.jdbc.Driver"
+export PORT="${PORT:-8080}"
+
+echo "Database URL: $DB_URL"
+echo "Server Port: $PORT"
+echo "Starting application..."
+
 exec java -jar app.jar
