@@ -101,14 +101,22 @@ fi
 
 # Start Spring Boot
 echo "=== Starting Spring Boot Application ==="
-export DB_URL="jdbc:mariadb://127.0.0.1:3306/todo?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-export DB_USERNAME="root"
-export DB_PASSWORD="2205"
-export DB_DRIVER="org.mariadb.jdbc.Driver"
-export PORT="${PORT:-8080}"
+DB_URL="jdbc:mariadb://127.0.0.1:3306/todo?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+DB_USERNAME="root"
+DB_PASSWORD="2205"
+DB_DRIVER="org.mariadb.jdbc.Driver"
+APP_PORT="${PORT:-8080}"
 
 echo "Database URL: $DB_URL"
-echo "Server Port: $PORT"
+echo "Server Port: $APP_PORT"
 echo "Starting application..."
 
-exec java -jar app.jar
+exec java \
+  -Dspring.datasource.url="$DB_URL" \
+  -Dspring.datasource.username="$DB_USERNAME" \
+  -Dspring.datasource.password="$DB_PASSWORD" \
+  -Dspring.datasource.driver-class-name="$DB_DRIVER" \
+  -Dspring.jpa.database-platform=org.hibernate.dialect.MariaDBDialect \
+  -Dserver.port="$APP_PORT" \
+  -jar app.jar
+
