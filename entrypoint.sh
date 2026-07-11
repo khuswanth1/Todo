@@ -6,14 +6,19 @@ echo "=== Starting Container Entrypoint ==="
 mkdir -p /run/mysqld /var/lib/mysql
 chown -R mysql:mysql /run/mysqld /var/lib/mysql
 
-# MariaDB config - TCP networking enabled
-cat > /etc/my.cnf.d/server.cnf <<EOF
+# Delete any default Alpine config files to avoid overrides
+rm -f /etc/my.cnf.d/*
+
+# Create a clean, custom /etc/my.cnf that enables TCP networking
+cat > /etc/my.cnf <<EOF
 [mysqld]
+user=mysql
 datadir=/var/lib/mysql
 socket=/run/mysqld/mysqld.sock
 bind-address=0.0.0.0
 port=3306
 skip-name-resolve
+skip-networking=0
 EOF
 
 # Always re-initialize (Render containers are ephemeral anyway)
@@ -22,17 +27,17 @@ rm -rf /var/lib/mysql/*
 mysql_install_db --user=mysql --datadir=/var/lib/mysql 2>&1 || mariadb-install-db --user=mysql --datadir=/var/lib/mysql 2>&1
 echo "Database initialization complete."
 
-# Start MariaDB with skip-grant-tables on the COMMAND LINE
+# Start MariaDB with skip-grant-tables using the custom config file
 echo "Starting MariaDB (skip-grant-tables)..."
-/usr/bin/mysqld --user=mysql --skip-grant-tables &
+/usr/bin/mysqld --defaults-file=/etc/my.cnf --skip-grant-tables &
 MYSQL_PID=$!
 
 # Wait for socket file to appear, then test connection
-echo "Waiting for MariaDB..."
+echo "Waiting for MariaDB to start..."
 CONNECTED=0
 for i in $(seq 1 60); do
     if [ -S /run/mysqld/mysqld.sock ]; then
-        if mysql -u root -e "SELECT 1" 2>/dev/null; then
+        if mysql --socket=/run/mysqld/mysqld.sock -u root -e "SELECT 1" 2>/dev/null; then
             echo "✅ MariaDB ready! (attempt $i)"
             CONNECTED=1
             break
@@ -49,12 +54,12 @@ if [ "$CONNECTED" -ne 1 ]; then
 fi
 
 # Create database
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS todo;"
+mysql --socket=/run/mysqld/mysqld.sock -u root -e "CREATE DATABASE IF NOT EXISTS todo;"
 echo "✅ Database 'todo' created."
 
-# Now stop MariaDB, remove skip-grant-tables, set password, restart
+# Stop MariaDB safely
 echo "Stopping MariaDB for auth setup..."
-mysqladmin -u root shutdown 2>/dev/null || kill -9 $MYSQL_PID 2>/dev/null || true
+mysqladmin --socket=/run/mysqld/mysqld.sock -u root shutdown 2>/dev/null || kill -9 $MYSQL_PID 2>/dev/null || true
 sleep 1
 
 # Clean up socket file to avoid stale connection issues
@@ -69,18 +74,15 @@ for i in $(seq 1 10); do
     sleep 1
 done
 
-# Restart WITHOUT skip-grant-tables
+# Restart MariaDB normally with auth enabled
 echo "Restarting MariaDB with auth..."
-/usr/bin/mysqld --user=mysql --port=3306 --bind-address=0.0.0.0 --skip-name-resolve &
+/usr/bin/mysqld --defaults-file=/etc/my.cnf &
 MYSQL_PID=$!
 
 # Wait for restart
 for i in $(seq 1 30); do
     if [ -S /run/mysqld/mysqld.sock ]; then
-        # On fresh Alpine MariaDB, root has no password and uses unix_socket
-        # We connect via socket as the mysql system user won't work,
-        # but root without password should work on fresh init
-        if mysql -u root -e "SELECT 1" 2>/dev/null; then
+        if mysql --socket=/run/mysqld/mysqld.sock -u root -e "SELECT 1" 2>/dev/null; then
             break
         fi
     fi
@@ -88,11 +90,11 @@ for i in $(seq 1 30); do
 done
 
 # Set root password using MariaDB-compatible syntax
-mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('2205');" 2>/dev/null || true
-mysql -u root -p2205 -e "GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY '2205'; FLUSH PRIVILEGES;" 2>/dev/null || true
+mysql --socket=/run/mysqld/mysqld.sock -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('2205');" 2>/dev/null || true
+mysql --socket=/run/mysqld/mysqld.sock -u root -p2205 -e "GRANT ALL ON *.* TO 'root'@'127.0.0.1' IDENTIFIED BY '2205'; FLUSH PRIVILEGES;" 2>/dev/null || true
 echo "✅ Auth configured."
 
-# Verify
+# Verify TCP connection works
 if mysql -u root -p2205 -h 127.0.0.1 -P 3306 -e "SELECT 1" 2>/dev/null; then
     echo "✅ TCP connection with password verified!"
 else
@@ -119,4 +121,3 @@ exec java \
   -Dspring.jpa.database-platform=org.hibernate.dialect.MariaDBDialect \
   -Dserver.port="$APP_PORT" \
   -jar app.jar
-
